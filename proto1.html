@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>兜知道 - 您的贴身金牌育婴师</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        :root {
+            /* Morandi / Warm Palette */
+            --brand-green: #8FB2A3;      /* Sage Green */
+            --brand-green-light: #E8F3EE;
+            --brand-orange: #FFCB9A;     /* Warm Apricot */
+            --brand-orange-light: #FDFBF7;
+            
+            --brand-pink: #F4C5C2;
+            --brand-blue: #A9CBD6;
+            
+            --bg-page: #FDFBF7;          /* Creamy White */
+            --bg-white: #FFFFFF;
+            
+            --text-main: #4A4A4A;
+            --text-secondary: #888888;
+            --border-color: rgba(0,0,0,0.05);
+            
+            --shadow-soft: 0 8px 30px rgba(143, 178, 163, 0.12);
+            --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', sans-serif;
+            background-color: #e0e0e0;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Phone Mockup Frame */
+        .phone-mockup {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-page);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        @media (min-width: 450px) {
+            .phone-mockup {
+                width: 375px;
+                height: 812px;
+                max-height: 95vh;
+                border-radius: 24px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                border: 8px solid #1a1a1a;
+            }
+        }
+
+        /* 1. Header */
+        .app-header {
+            background-color: var(--bg-page);
+            padding-top: max(env(safe-area-inset-top), 20px);
+            padding-bottom: 10px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .app-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+        }
+        .app-capsule {
+            position: absolute;
+            right: 16px;
+            bottom: 8px;
+            width: 80px;
+            height: 30px;
+            background: rgba(255,255,255,0.6);
+            border: 0.5px solid rgba(0,0,0,0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+        .disclaimer-banner {
+            font-size: 10px;
+            color: #fa9d3b;
+            background-color: #fff8e1;
+            padding: 6px 16px;
+            text-align: center;
+        }
+
+        /* 2. Chat Area */
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        #chat-container::-webkit-scrollbar { display: none; }
+
+        .chat-row {
+            display: flex;
+            margin-bottom: 24px;
+            align-items: flex-start;
+            animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* 更自然的滑入效果 */
+            width: 100%; /* Ensure full width usage */
+        }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .chat-row.user { justify-content: flex-end; }
+        
+        .avatar {
+            width: 40px; /* 稍微加大 */
+            height: 40px;
+            border-radius: 50%; /* 圆形 */
+            margin-right: 12px;
+            flex-shrink: 0;
+            background-color: #fff; /* 白底 */
+            border: 1px solid #ffe0b2; /* 橙色边框 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--brand-orange);
+            font-size: 16px;
+            font-weight: bold;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        /* 在线小绿点 */
+        .avatar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            background-color: #4caf50;
+            border: 2px solid #fff;
+            border-radius: 50%;
+        }
+        
+        .chat-content {
+            max-width: calc(100% - 60px); /* 调整宽度计算 */
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-name {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 6px;
+            margin-left: 4px;
+        }
+
+        .bubble {
+            padding: 14px 18px; /* 增加内边距 */
+            font-size: 15px;
+            line-height: 1.6;
+            position: relative;
+            word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        
+        .bubble-ai {
+            background-color: #fffcf5; /* 暖米色背景 */
+            color: #4a4a4a;
+            border-radius: 4px 18px 18px 18px; /* 不对称圆角：左上角尖，模拟气泡 */
+            border: 1px solid #fdebd0; /* 极淡的橙色边框 */
+        }
+        
+        .bubble-user {
+            background-color: #95ec69;
+            color: #000;
+            margin-right: 10px;
+            border-radius: 18px 4px 18px 18px; /* 不对称圆角 */
+        }
+        
+        .user-avatar {
+            width: 36px; height: 36px; border-radius: 6px; background: #ddd; display: flex; align-items: center; justify-content: center; color: #fff;
+        }
+
+        /* Feature Grid (Home) */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .feature-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .feature-card:active { transform: scale(0.98); }
+        
+        .f-icon-wrapper {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        .bg-green-soft { background: #e8f5e9; color: #4caf50; }
+        .bg-red-soft { background: #ffebee; color: #ef5350; }
+        .bg-indigo-soft { background: #e8eaf6; color: #5c6bc0; }
+        .bg-blue-soft { background: #e3f2fd; color: #42a5f5; }
+        
+        .f-title { font-size: 15px; font-weight: 600; color: #333; }
+        .f-sub { font-size: 11px; color: #999; margin-top: 2px; }
+
+        /* --- SOP WIZARD STYLES (COMPACT MODE) --- */
+        .sop-wizard-card {
+            background: #fff;
+            border-radius: 14px;
+            margin-top: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.03);
+            width: 100%;
+        }
+
+        /* Phase 1: Preparation List */
+        .sop-header {
+            padding: 14px 16px 10px 16px; 
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .sop-wiz-title {
+            font-size: 15px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 8px;
+        }
+        .sop-phase-tag {
+            font-size: 10px; font-weight: normal; color: #fa9d3b; background: #fff8e1; padding: 2px 5px; border-radius: 4px;
+        }
+        
+        .sop-prep-list { padding: 8px 16px; }
+        .sop-prep-item {
+            display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px dashed #f0f0f0; cursor: pointer;
+            width: 100%; /* FIX: Full width */
+        }
+        .sop-prep-item:last-child { border-bottom: none; }
+        
+        /* Updated Prep Check Style: Solid Circle, No Tick */
+        .prep-check {
+            width: 18px; height: 18px; border-radius: 50%; border: 2px solid #ddd; flex-shrink: 0; margin-top: 2px;
+            transition: all 0.2s;
+            background-color: transparent;
+        }
+        .sop-prep-item.checked .prep-check {
+            border-color: var(--brand-green); 
+            background-color: var(--brand-green); /* Solid Green Fill */
+            /* No icon inside */
+        }
+        
+        /* FIX: Prevent text overflow */
+        .sop-prep-text { 
+            font-size: 14px; color: #444; line-height: 1.5; 
+            flex: 1; /* Allow growing */
+            min-width: 0; /* Allow shrinking in flex container */
+            word-wrap: break-word; /* Wrap long words */
+        }
+
+        /* Phase 2: Steps (Compact) */
+        .sop-step-container { padding: 20px 16px; text-align: center; } 
+        .step-progress { font-size: 11px; color: var(--brand-green); font-weight: 600; letter-spacing: 1px; margin-bottom: 8px; }
+        .step-main-title { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 12px; }
+        .step-desc { 
+            font-size: 15px; color: #4a4a4a; line-height: 1.6; text-align: left; 
+            background: #f5f5f5; padding: 16px; border-radius: 8px; /* 灰色底色块 */
+            word-wrap: break-word; white-space: pre-wrap; 
+        }
+
+        /* Actions */
+        .sop-actions { padding: 16px; border-top: 1px solid #f5f5f5; display: flex; gap: 12px; }
+        .btn-sop-primary {
+            flex: 1; background: var(--brand-green); color: #fff; height: 44px; border-radius: 22px; 
+            font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(7, 193, 96, 0.2); cursor: pointer; transition: transform 0.1s;
+        }
+        .btn-sop-primary:active { transform: scale(0.98); }
+        .btn-sop-outline {
+            width: 44px; height: 44px; border-radius: 50%; border: 1px solid #e0e0e0; color: #666;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; background: #fff;
+        }
+
+        /* Bottom Input Area */
+        .bottom-area {
+            background: #f7f7f7;
+            padding-bottom: max(env(safe-area-inset-bottom), 10px);
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .chips-scroll {
+            display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px; scrollbar-width: none;
+        }
+        .chip {
+            background: #fff; color: #333; padding: 6px 12px; border-radius: 16px; font-size: 12px;
+            white-space: nowrap; border: 1px solid #eee; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        
+        .input-bar {
+            padding: 8px 16px; display: flex; align-items: flex-end; gap: 8px;
+        }
+        .input-wrapper {
+            flex: 1; background: #fff; border-radius: 4px; padding: 8px 10px; display: flex; align-items: center;
+        }
+        .input-field {
+            width: 100%; border: none; outline: none; background: transparent; font-size: 16px; resize: none; max-height: 80px; padding: 0; line-height: 1.4;
+        }
+        .send-btn {
+            background: var(--brand-green); color: #fff; padding: 0 16px; height: 36px; border-radius: 4px;
+            font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        
+        .action-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #666; font-size: 20px; }
+
+        /* Profile Modal */
+        .modal-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 100;
+            display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .profile-card {
+            width: 100%; background: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px;
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            max-height: 85vh; overflow-y: auto;
+        }
+        .modal-overlay.show .profile-card { transform: translateY(0); }
+        .pc-header { padding: 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .pc-title { font-size: 16px; font-weight: 600; }
+        .pc-body { padding: 20px; }
+        .pc-section { margin-bottom: 20px; }
+        .pc-label { font-size: 14px; color: #333; font-weight: 500; margin-bottom: 8px; display: block; }
+        .pc-input { width: 100%; background: #f5f5f5; border: none; border-radius: 6px; padding: 12px; font-size: 15px; outline: none; }
+        .pc-btn-save { width: 100%; background: var(--brand-green); color: #fff; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 600; border: none; cursor: pointer; }
+
+        /* Loading */
+        .typing-indicator { display: flex; gap: 4px; padding: 4px 8px; }
+        .dot { width: 6px; height: 6px; background: #ccc; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Tab Bar */
+        .tab-bar { display: flex; border-top: 1px solid #eee; background: #fff; padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 0; color: #999; cursor: pointer; }
+        .tab-item.active { color: var(--brand-green); }
+        .tab-item i { font-size: 20px; margin-bottom: 4px; }
+        .tab-item span { font-size: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="phone-mockup" id="app">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="app-title">兜知道</div>
+            <div class="app-capsule">
+                <i class="fas fa-ellipsis-h" style="font-size: 14px;"></i>
+                <div style="width:1px; height:14px; background:#ddd;"></div>
+                <i class="fas fa-dot-circle" style="font-size: 14px;"></i>
+            </div>
+        </div>
+        <div class="disclaimer-banner">AI建议仅供参考，如遇高烧/惊厥等急症请立即就医</div>
+
+        <!-- Chat Container -->
+        <div id="chat-container">
+            <!-- Welcome -->
+            <div class="chat-row">
+                <div class="avatar">兜</div>
+                <div class="chat-content">
+                    <div class="chat-name">兜兜 (金牌月嫂)</div>
+                    <div class="bubble bubble-ai">
+                        宝妈你好呀！我是兜兜阿姨 👋<br>今天宝宝状态怎么样？不管是吃喝拉撒，还是生病护理，我都在哦。
+                    </div>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card" onclick="triggerScenario('food')">
+                            <div class="f-indicator bg-green"><i class="fas fa-apple-alt"></i></div>
+                            <div class="f-info">
+                                <div class="f-title">辅食喂养</div>
+                                <div class="f-sub">怎么吃 / 过敏 / 补钙</div>
+                            </div>
+                        </div>
+                        <div class="feature-card" onclick="triggerScenario('illness')">
+                            <div class="f-indicator bg-red"><i class="fas fa-thermometer-half"></i></div>
+                            <div class="f-info">
+                                <div class="f-title">生病护理</div>
+                                <div class="f-sub">发烧 / 感冒 / 腹泻</div>
+                            </div>
+                        </div>
+                        <div class="feature-card" onclick="triggerScenario('sleep')">
+                            <div class="f-indicator bg-indigo"><i class="fas fa-moon"></i></div>
+                            <div class="f-info">
+                                <div class="f-title">睡眠引导</div>
+                                <div class="f-sub">接觉 / 夜醒 / 吵醒</div>
+                            </div>
+                        </div>
+                        <div class="feature-card" onclick="triggerScenario('growth')">
+                            <div class="f-indicator bg-blue"><i class="fas fa-ruler-vertical"></i></div>
+                            <div class="f-info">
+                                <div class="f-title">生长发育</div>
+                                <div class="f-sub">身高 / 体重 / 大运动</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Area -->
+        <div class="bottom-area">
+            <div class="chips-scroll" id="suggestion-bar">
+                <div class="chip" onclick="sendQuickMsg('宝宝发烧39度怎么办？')">🌡️ 发烧39度怎么办？</div>
+                <div class="chip" onclick="sendQuickMsg('怎么给宝宝洗澡？')">🛁 怎么给宝宝洗澡？</div>
+                <div class="chip" onclick="sendQuickMsg('宝宝一直哭怎么哄？')">😭 宝宝一直哭怎么哄？</div>
+            </div>
+
+            <div class="input-bar">
+                <div class="action-btn"><i class="far fa-keyboard"></i></div>
+                <div class="input-wrapper">
+                    <textarea id="user-input" class="input-field" rows="1" placeholder="问问兜兜..." oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onkeydown="handleKeyPress(event)"></textarea>
+                </div>
+                <div class="action-btn"><i class="far fa-smile"></i></div>
+                <div class="send-btn" onclick="sendMessage()">发送</div>
+            </div>
+
+            <div class="tab-bar">
+                <div class="tab-item active">
+                    <i class="fas fa-comment"></i>
+                    <span>咨询</span>
+                </div>
+                <div class="tab-item" onclick="showProfile()">
+                    <i class="fas fa-address-book"></i>
+                    <span>兜兜小本</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Modal -->
+        <div class="modal-overlay" id="profile-modal" onclick="if(event.target===this) closeProfile()">
+            <div class="profile-card">
+                <div class="pc-header">
+                    <div class="pc-title">宝宝档案</div>
+                    <div onclick="closeProfile()" style="padding:10px; cursor:pointer;"><i class="fas fa-times"></i></div>
+                </div>
+                <div class="pc-body">
+                    <div class="pc-section">
+                        <label class="pc-label">宝宝昵称</label>
+                        <input type="text" id="p-name" class="pc-input" value="糯米">
+                    </div>
+                    <div class="pc-section">
+                        <label class="pc-label">性别</label>
+                        <div style="display:flex; gap:10px;">
+                            <button id="btn-boy" onclick="setGender('男孩')" class="pc-input" style="flex:1; background:#fff; border:1px solid #eee; color:#333;">男孩</button>
+                            <button id="btn-girl" onclick="setGender('女孩')" class="pc-input" style="flex:1; background:#fff; border:1px solid #eee; color:#333;">女孩</button>
+                        </div>
+                    </div>
+                    <div class="pc-section">
+                        <label class="pc-label">出生日期</label>
+                        <input type="date" id="p-birth" class="pc-input" value="2023-11-20" onchange="updateAge()">
+                        <div style="margin-top:8px; font-size:13px; color:#fa9d3b; font-weight:600;" id="p-age-display">计算中...</div>
+                    </div>
+                    
+                    <div style="border-top:1px solid #eee; margin:20px 0;"></div>
+                    <div style="font-size:12px; color:#999; margin-bottom:10px;">最近状态 (AI将参考此信息)</div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div>
+                            <label class="pc-label" style="font-size:12px;">上次喂奶 (小时前)</label>
+                            <input type="number" id="s-feed" class="pc-input" value="3.5">
+                        </div>
+                        <div>
+                            <label class="pc-label" style="font-size:12px;">体温 (℃)</label>
+                            <input type="number" id="s-temp" class="pc-input" value="36.6">
+                        </div>
+                    </div>
+
+                    <button class="pc-btn-save" style="margin-top:24px;" onclick="saveProfile()">保存档案</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const API_KEY = "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";
+        const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+        const MODEL_NAME = "google/gemini-3-flash-preview";
+
+        // --- State ---
+        let chatHistory = [];
+        let userProfile = { name: '糯米', gender: '男孩', birth: '2023-11-20' };
+        let babyState = { feed: 3.5, temp: 36.6 };
+        
+        const HIGH_FREQ_QUESTIONS = [
+          '宝宝发烧39度怎么办？', '怎么给宝宝洗澡？', '宝宝一直哭怎么哄？',
+          '新生儿多久喂一次？', '宝宝便秘怎么办？', '怎么接觉？',
+          '红屁股怎么护理？', '宝宝吐奶正常吗？', '黄疸多久能退？',
+          '宝宝多大长牙？', '什么时候开始抬头？', '怎么做排气操？',
+          '肚脐出血怎么办？', '宝宝淹脖子怎么办？', '新生儿一天睡多久？',
+          '辅食什么时候添加？', '宝宝不吃奶瓶怎么办？', '长湿疹了怎么办？',
+          '三个月宝宝会翻身吗？', '怎么做抚触？'
+        ];
+
+        // Registry for SOP Card States
+        const SOP_REGISTRY = {};
+
+        // --- DOM Elements ---
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+
+        // --- Init ---
+        updateAge();
+        setGender(userProfile.gender);
+        initRandomSuggestions();
+
+        function initRandomSuggestions() {
+            const shuffled = [...HIGH_FREQ_QUESTIONS].sort(() => 0.5 - Math.random());
+            updateSuggestionBar(shuffled.slice(0, 5));
+        }
+
+        // Auto-show Demo Card
+        setTimeout(() => {
+            const demoSOP = {
+                reply: "好的，给宝宝做排气操可以有效缓解肠胀气。咱们先做好准备工作，然后跟着我一步步来：",
+                action: "sop",
+                sopData: {
+                    title: "防胀气排气操",
+                    preps: ["室温保持 26℃ 左右，关好门窗避免对流风", "洗干净双手，剪短指甲，摘下戒指", "准备好抚触油", "宝宝饭后至少 1 小时，且情绪平稳，这是为了防止宝宝吐奶或者不舒服。"],
+                    steps: [
+                        { title: "预备式", desc: "双手搓热，涂抹适量抚触油，在手心推开。顺时针轻揉宝宝腹部 2-3 圈，让宝宝适应抚触的力度。" },
+                        { title: "推心置腹", desc: "双手交替，从宝宝胸口位置，向下轻推至大腿根部。动作轻柔连贯，避开宝宝的肚脐。 (重复 8 次)" },
+                        { title: "蹬单车", desc: "握住宝宝脚踝，辅助宝宝做交替屈膝动作，像骑自行车一样，轻轻压向腹部。 (重复 8 次)" },
+                        { title: "双腿按压", desc: "双腿并拢，同时屈膝，向腹部轻轻挤压，停留 3 秒钟，帮助排气。 (重复 4 次)" }
+                    ]
+                },
+                suggestions: ["做的时候宝宝哭了怎么办？", "一天做几次比较好？"]
+            };
+            renderAIResponse(demoSOP);
+        }, 800);
+
+        // --- Global Actions for SOP Cards ---
+        window.togglePrepItem = function(el) {
+            el.classList.toggle('checked');
+        }
+
+        window.sopAction = function(cardId, action) {
+            const state = SOP_REGISTRY[cardId];
+            if (!state) return;
+
+            if (action === 'start') {
+                state.currentStep = 0;
+            } else if (action === 'next') {
+                if (state.currentStep < state.data.steps.length - 1) {
+                    state.currentStep++;
+                } else {
+                    state.currentStep = 'finished';
+                }
+            } else if (action === 'prev') {
+                if (state.currentStep > 0) {
+                    state.currentStep--;
+                } else {
+                    state.currentStep = -1;
+                }
+            }
+
+            const cardEl = document.getElementById(cardId);
+            if (cardEl) {
+                cardEl.innerHTML = renderSOPInnerHtml(cardId, state);
+            }
+        };
+
+        // --- Logic ---
+
+        function calculateAge(birthStr) {
+            const birth = new Date(birthStr);
+            const now = new Date();
+            let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+            let days = now.getDate() - birth.getDate();
+            if(days < 0) { months--; days += 30; }
+            if(months < 0) return "未出生";
+            if(months < 12) return `${months}个月${days}天`;
+            return `${Math.floor(months/12)}岁${months%12}个月`;
+        }
+
+        function updateAge() {
+            const val = document.getElementById('p-birth').value;
+            const ageStr = calculateAge(val);
+            document.getElementById('p-age-display').innerText = "当前月龄: " + ageStr;
+        }
+
+        function setGender(g) {
+            userProfile.gender = g;
+            const btnBoy = document.getElementById('btn-boy');
+            const btnGirl = document.getElementById('btn-girl');
+            if(g === '男孩') {
+                btnBoy.style.borderColor = '#07c160'; btnBoy.style.color = '#07c160'; btnBoy.style.background = '#e8f5e9';
+                btnGirl.style.borderColor = '#eee'; btnGirl.style.color = '#333'; btnGirl.style.background = '#fff';
+            } else {
+                btnGirl.style.borderColor = '#fa9d3b'; btnGirl.style.color = '#fa9d3b'; btnGirl.style.background = '#fff8e1';
+                btnBoy.style.borderColor = '#eee'; btnBoy.style.color = '#333'; btnBoy.style.background = '#fff';
+            }
+        }
+
+        function showProfile() {
+            document.getElementById('profile-modal').classList.add('show');
+            document.getElementById('p-name').value = userProfile.name;
+            document.getElementById('p-birth').value = userProfile.birth;
+            document.getElementById('s-feed').value = babyState.feed;
+            document.getElementById('s-temp').value = babyState.temp;
+            updateAge();
+        }
+
+        function closeProfile() {
+            document.getElementById('profile-modal').classList.remove('show');
+        }
+
+        function saveProfile() {
+            userProfile.name = document.getElementById('p-name').value;
+            userProfile.birth = document.getElementById('p-birth').value;
+            userProfile.gender = userProfile.gender;
+            babyState.feed = document.getElementById('s-feed').value;
+            babyState.temp = document.getElementById('s-temp').value;
+            closeProfile();
+            chatHistory = []; 
+        }
+
+        // --- AI Interaction ---
+
+        function getSystemPrompt() {
+            const age = calculateAge(userProfile.birth);
+            return `你是一位名叫“兜兜”的金牌月嫂。服务对象：${userProfile.name}，${userProfile.gender}，月龄${age}。
+你的核心职责是：安抚新手父母的焦虑，并提供手把手的 Wizard（向导）式操作指导。
+
+回复要求：
+1. **Wizard 模式 (SOP)**：当用户询问具体操作流程（如洗澡、排气操、抚触、拍嗝、换尿布）时，必须返回 "action": "sop"，并提供严格的三段式数据（准备清单 -> 分步执行）。
+   - 步骤描述要简短有力，适合在手机屏幕阅读。
+   - 准备清单要具体（如“室温26度”、“温水”）。
+
+2. **亲切口吻**：使用“兜兜阿姨”的口吻，语气温柔、坚定、专业。多用“宝妈别急”、“咱们先...”。
+
+3. **数据格式**：
+   - **绝对不要**使用Markdown代码块。直接返回纯JSON字符串。
+   - **禁止**在JSON字符串内使用实际换行符。
+   - 结构如下：
+{
+  "reply": "安抚话语（简短，不换行）",
+  "action": "none" 或 "sop", 
+  "sopData": { 
+      "title": "标题（如：新生儿洗澡流程）", 
+      "preps": ["准备项1", "准备项2"], 
+      "steps": [{"title":"步骤1","desc":"详情（简练）"}, {"title":"步骤2","desc":"详情"}] 
+  },
+  "suggestions": ["用户视角的追问1（如：宝宝哭了怎么办？）", "用户视角的追问2"]
+}
+
+4. 遇到医疗急症（如高烧不退、惊厥、呼吸困难）请立即建议就医。`;
+        }
+
+        // 强力 JSON 清洗与解析器
+        function safeParseJSON(str) {
+            // 1. 尝试直接解析
+            try {
+                return JSON.parse(str);
+            } catch (e) {
+                console.log("Direct parse failed, cleaning...");
+            }
+
+            // 2. 清洗 Markdown 标记
+            let cleanStr = str.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/, "");
+            
+            // 3. 核心修复：处理未转义的换行符。
+            // 很多 LLM 会在 JSON 字符串里直接换行，导致解析失败。
+            // 我们把所有非转义的换行符替换成空格，或者试图转义它。
+            // 为了安全，我们先尝试把换行符替换成 \\n
+            cleanStr = cleanStr.replace(/(?<!\\)\n/g, "\\n");
+
+            try {
+                return JSON.parse(cleanStr);
+            } catch (e) {
+                console.log("Cleanup parse failed, trying manual extraction...");
+                
+                // 4. 手动正则提取 (Manual Extraction Fallback)
+                // 如果 JSON 结构坏了，我们尝试分别提取 reply 和 sopData
+                // 这是一个即使 JSON 格式错误也能工作的“兜底”方案
+                
+                let reply = "哎呀，兜兜阿姨收到消息了，但数据格式有点小问题。";
+                let action = 'none';
+                let sopData = null;
+                let suggestions = [];
+
+                // 提取 Reply
+                const replyMatch = cleanStr.match(/"reply"\s*:\s*"(.*?)(?=",|})/s); // 简单的提取
+                if (replyMatch) reply = replyMatch[1];
+                else if (!cleanStr.trim().startsWith('{')) reply = cleanStr; // 可能是纯文本
+
+                // 提取 Action
+                if (cleanStr.includes('"action": "sop"') || cleanStr.includes('"action":"sop"')) {
+                    action = 'sop';
+                }
+
+                // 如果是 SOP，尝试提取 sopData 块 (这就比较难了，正则很难匹配嵌套对象)
+                // 这里我们做一个简化的假设：如果解析失败，就只显示 reply，不显示坏掉的卡片
+                // 或者我们可以尝试用更激进的清洗（比如删掉所有控制字符）
+                
+                return {
+                    reply: reply,
+                    action: action === 'sop' ? 'none' : 'none', // 格式坏了就别显示卡片了，免得报错
+                    sopData: null,
+                    suggestions: []
+                };
+            }
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if(!text) return;
+
+            addMessage(text, 'user');
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            const loadingId = addLoading();
+
+            try {
+                const messages = [
+                    { role: "system", content: getSystemPrompt() },
+                    ...chatHistory.slice(-4),
+                    { role: "user", content: text }
+                ];
+
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${API_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: MODEL_NAME, messages: messages, temperature: 0.7 })
+                });
+
+                const data = await response.json();
+                document.getElementById(loadingId).remove();
+
+                if(data.error) throw new Error(data.error.message);
+
+                let content = data.choices[0].message.content;
+                let aiData = safeParseJSON(content);
+
+                chatHistory.push({ role: "user", content: text });
+                chatHistory.push({ role: "assistant", content: JSON.stringify(aiData) });
+
+                renderAIResponse(aiData);
+
+            } catch (error) {
+                document.getElementById(loadingId)?.remove();
+                const errMsg = error.message || "未知错误";
+                addMessage(`(调试信息) 网络有点小差错: ${errMsg}。\n请检查网络连接或API Key配置。`, 'ai');
+                console.error(error);
+            }
+        }
+
+        function addMessage(html, type) {
+            const div = document.createElement('div');
+            div.className = `chat-row ${type}`;
+            if(type === 'user') {
+                div.innerHTML = `<div class="bubble bubble-user">${html.replace(/\n/g,'<br>')}</div><div class="user-avatar"><i class="fas fa-user"></i></div>`;
+            } else {
+                div.innerHTML = `
+                    <div class="avatar">兜</div>
+                    <div class="chat-content">
+                        <div class="chat-name">兜兜</div>
+                        <div class="bubble bubble-ai markdown-body">${html}</div>
+                    </div>`;
+            }
+            chatContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function addLoading() {
+            const id = 'loading-' + Date.now();
+            const div = document.createElement('div');
+            div.className = 'chat-row';
+            div.id = id;
+            div.innerHTML = `
+                <div class="avatar">兜</div>
+                <div class="chat-content">
+                    <div class="chat-name">兜兜</div>
+                    <div class="bubble bubble-ai"><div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+                </div>`;
+            chatContainer.appendChild(div);
+            scrollToBottom();
+            return id;
+        }
+
+        function renderAIResponse(data) {
+            const div = document.createElement('div');
+            div.className = 'chat-row';
+            
+            let cardHTML = '';
+            
+            if(data.action === 'sop' && data.sopData) {
+                const cardId = 'sop-' + Date.now();
+                SOP_REGISTRY[cardId] = {
+                    data: data.sopData,
+                    currentStep: -1 
+                };
+                cardHTML = `<div id="${cardId}" class="sop-wizard-card">${renderSOPInnerHtml(cardId, SOP_REGISTRY[cardId])}</div>`;
+            }
+
+            if(data.suggestions && data.suggestions.length > 0) {
+                updateSuggestionBar(data.suggestions);
+            }
+
+            div.innerHTML = `
+                <div class="avatar">兜</div>
+                <div class="chat-content">
+                    <div class="chat-name">兜兜</div>
+                    <div class="bubble bubble-ai markdown-body">${marked.parse(data.reply || '')}</div>
+                    ${cardHTML}
+                </div>`;
+            
+            chatContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function updateSuggestionBar(suggestions) {
+            const bar = document.getElementById('suggestion-bar');
+            if(!bar) return;
+            bar.innerHTML = suggestions.map(s => `<div class="chip" onclick="sendQuickMsg('${s}')">${s}</div>`).join('');
+            // Scroll to start
+            bar.scrollLeft = 0;
+        }
+
+        function renderSOPInnerHtml(cardId, state) {
+            const { data, currentStep } = state;
+            const steps = data.steps || [];
+            const preps = data.preps || [];
+
+            if (currentStep === -1) {
+                const listHTML = preps.map((item, index) => {
+                    const idxStr = (index + 1) < 10 ? '0' + (index + 1) : (index + 1);
+                    return `
+                    <div class="sop-prep-item">
+                        <div class="prep-index">${idxStr}</div>
+                        <div class="sop-prep-text">${item}</div>
+                    </div>
+                `}).join('');
+
+                return `
+                    <div class="sop-header">
+                        <div class="sop-wiz-title">
+                            <div class="sop-title-dot"></div>
+                            ${data.title}
+                            <span class="sop-phase-tag">准备阶段</span>
+                        </div>
+                    </div>
+                    <div class="sop-prep-list">${listHTML}</div>
+                    <div class="sop-actions">
+                        <div class="btn-sop-primary" onclick="sopAction('${cardId}', 'start')">开始</div>
+                    </div>
+                `;
+            }
+            
+            if (currentStep === 'finished') {
+                return `
+                    <div style="padding:40px 20px; text-align:center;">
+                        <div style="width:50px; height:50px; background:#e8f5e9; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                            <i class="fas fa-flag-checkered" style="font-size:24px; color:#07c160;"></i>
+                        </div>
+                        <h3 style="font-size:16px; font-weight:700; color:#333; margin-bottom:8px;">完成啦</h3>
+                        <p style="font-size:14px; color:#666;">宝宝现在一定感觉很舒服~</p>
+                        <div style="margin-top:24px;">
+                            <div class="btn-sop-primary" onclick="sopAction('${cardId}', 'prev')">回顾步骤</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const step = steps[currentStep];
+            return `
+                 <div class="sop-header">
+                    <div class="sop-wiz-title">
+                        ${data.title}
+                        <span class="sop-phase-tag" style="background:#e8f5e9; color:#07c160;">${currentStep + 1}/${steps.length}</span>
+                    </div>
+                </div>
+                <div class="sop-step-container">
+                    <div class="step-progress">STEP ${currentStep + 1}</div>
+                    <div class="step-main-title">${step.title}</div>
+                    <div class="step-desc">${step.desc}</div>
+                </div>
+                <div class="sop-actions">
+                    <div class="btn-sop-outline" onclick="sopAction('${cardId}', 'prev')"><i class="fas fa-chevron-left"></i></div>
+                    <div class="btn-sop-primary" onclick="sopAction('${cardId}', 'next')">
+                        ${currentStep === steps.length - 1 ? '完成' : '下一步'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function scrollToBottom() {
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 50); // Small delay to ensure DOM is painted
+        }
+
+        function sendQuickMsg(text) {
+            userInput.value = text;
+            sendMessage();
+        }
+
+        function triggerScenario(type) {
+            const prompts = {
+                'food': '宝宝辅食添加时间表',
+                'illness': '宝宝发烧物理降温方法',
+                'sleep': '如何培养宝宝自主入睡？',
+                'growth': '3个月宝宝的大运动发展标准'
+            };
+            sendQuickMsg(prompts[type] || type);
+        }
+
+        function handleKeyPress(e) {
+            if(e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>

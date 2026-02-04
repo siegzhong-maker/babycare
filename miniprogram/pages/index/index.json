@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "sop-wizard": "../../components/sop-wizard/sop-wizard"
+  },
+  "navigationStyle": "custom"
+}

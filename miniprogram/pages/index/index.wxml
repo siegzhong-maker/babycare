@@ -1,0 +1,126 @@
+<!-- index.wxml -->
+<view class="page-container">
+  <!-- Header (Custom Status Bar Mock) -->
+  <view class="app-header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="app-title">兜知道</view>
+  </view>
+  <view class="disclaimer-banner">AI建议仅供参考，如遇高烧/惊厥等急症请立即就医</view>
+
+  <!-- Chat Area -->
+  <scroll-view class="chat-scroll" scroll-y scroll-into-view="{{scrollToView}}" scroll-with-animation>
+    <view class="chat-content-inner">
+      <!-- Welcome & Grid -->
+      <view class="chat-row">
+        <view class="avatar">兜</view>
+        <view class="chat-content-wrapper">
+          <view class="chat-name">兜兜 (金牌月嫂)</view>
+          <view class="bubble bubble-ai">
+            <text>宝妈你好呀！我是兜兜阿姨\n今天宝宝状态怎么样？不管是吃喝拉撒，还是生病护理，我都在哦。</text>
+          </view>
+          
+          <view class="worry-wall-container">
+            <view class="worry-title">大家都在问：</view>
+            <view class="worry-wall">
+              <view class="worry-tag" wx:for="{{worryTags}}" wx:key="id" bindtap="handleTagTap" data-item="{{item}}">
+                {{item.text}}
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- History -->
+      <block wx:for="{{chatHistory}}" wx:key="index">
+        <!-- User -->
+        <view class="chat-row user" wx:if="{{item.role === 'user'}}">
+          <view class="bubble bubble-user">
+            <text user-select>{{item.content}}</text>
+          </view>
+        </view>
+
+        <!-- AI -->
+        <view class="chat-row" wx:else>
+          <view class="avatar">兜</view>
+          <view class="chat-content-wrapper">
+            <view class="chat-name">兜兜</view>
+            <view class="bubble bubble-ai" wx:if="{{item.reply}}">
+              <text user-select>{{item.reply}}</text>
+            </view>
+            <!-- Loading State -->
+            <view class="bubble bubble-ai" wx:if="{{item.isLoading}}">
+              <view class="typing-indicator">
+                <view class="dot"></view><view class="dot"></view><view class="dot"></view>
+              </view>
+            </view>
+            <!-- SOP Card -->
+            <sop-wizard wx:if="{{item.action === 'sop' && item.sopData}}" data="{{item.sopData}}"></sop-wizard>
+          </view>
+        </view>
+      </block>
+      
+      <!-- Anchor for scrolling -->
+      <view id="scroll-bottom" style="height: 1px;"></view>
+    </view>
+  </scroll-view>
+
+  <!-- Bottom Area -->
+  <view class="bottom-area">
+    <view class="suggestion-area">
+      <view class="sugg-header">
+        <text class="sugg-icon">💡</text>
+        <text class="sugg-title">猜你想问</text>
+      </view>
+      <scroll-view class="chips-scroll" scroll-x enable-flex>
+        <view class="chip" wx:for="{{suggestions}}" wx:key="index" bindtap="sendQuickMsg" data-text="{{item}}">{{item}}</view>
+      </scroll-view>
+    </view>
+
+    <view class="input-bar">
+      <view class="input-wrapper">
+        <input class="input-field" value="{{inputValue}}" bindinput="handleInput" placeholder="问问兜兜..." confirm-type="send" bindconfirm="sendMessage" disabled="{{isLoading}}"/>
+      </view>
+      <view class="send-btn" bindtap="sendMessage" style="opacity: {{isLoading ? 0.5 : 1}}">发送</view>
+    </view>
+
+    <view class="tab-bar">
+      <view class="tab-item active">
+        <view class="tab-dot"></view>
+        <view class="tab-text">咨询</view>
+      </view>
+      <view class="tab-item" bindtap="showProfile">
+        <view class="tab-text" style="color:#ccc">兜兜小本</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Profile Modal -->
+  <view class="modal-overlay {{showModal ? 'show' : ''}}" bindtap="closeProfile">
+    <view class="profile-card" catchtap="stopProp">
+      <view class="pc-header">
+        <view class="pc-title">宝宝档案</view>
+        <view bindtap="closeProfile" style="padding:20rpx; font-weight:bold;">×</view>
+      </view>
+      <view class="pc-body">
+        <view class="pc-section">
+          <text class="pc-label">宝宝昵称</text>
+          <input class="pc-input" value="{{profile.name}}" bindinput="bindName"/>
+        </view>
+        <view class="pc-section">
+           <text class="pc-label">性别: {{profile.gender}}</text>
+           <view style="display:flex; gap:20rpx;">
+             <view class="gender-btn {{profile.gender=='男孩'?'active':''}}" bindtap="setGender" data-g="男孩">男孩</view>
+             <view class="gender-btn {{profile.gender=='女孩'?'active':''}}" bindtap="setGender" data-g="女孩">女孩</view>
+           </view>
+        </view>
+        <view class="pc-section">
+          <text class="pc-label">出生日期</text>
+          <picker mode="date" value="{{profile.birth}}" bindchange="bindDate">
+            <view class="pc-input">{{profile.birth}} ({{ageStr}})</view>
+          </picker>
+        </view>
+        <button class="pc-btn-save" bindtap="saveProfile">保存档案</button>
+      </view>
+    </view>
+  </view>
+
+</view>

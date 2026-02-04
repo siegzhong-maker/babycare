@@ -1,0 +1,26 @@
+{
+  "name": "dou-zhidao-miniprogram",
+  "version": "1.0.0",
+  "description": "AI Monthly Nurse Miniprogram",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "miniprogram-simulate": "^1.6.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "wxss"
+    ],
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "miniprogram/**/*.js",
+      "!miniprogram/app.js"
+    ]
+  }
+}

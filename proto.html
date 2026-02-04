@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>兜知道 - 智能育婴助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* WeChat Mini Program Style Reset */
+        :root {
+            --brand-primary: #07c160; /* WeChat Green */
+            --brand-orange: #fa9d3b; /* Warm Orange for Baby App */
+            --bg-page: #f7f7f7;
+            --bg-white: #ffffff;
+            --text-main: #000000;
+            --text-secondary: #888888;
+            --border-color: #eeeeee;
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
+            background-color: var(--bg-page);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 手机容器 - 模拟 iPhone/小程序 */
+        .phone-mockup {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-page);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        @media (min-width: 450px) {
+            .phone-mockup {
+                max-width: 375px; /* WeChat Standard Width */
+                max-height: 812px;
+                border-radius: 12px; /* Smooth corners */
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+
+        /* 顶部导航栏 (WeChat Navigation Bar) */
+        .we-navbar {
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-white);
+            font-size: 17px;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding-top: env(safe-area-inset-top);
+        }
+        
+        /* 胶囊按钮占位符 (Capsule Placeholder) */
+        .we-capsule-placeholder {
+            position: absolute;
+            right: 7px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 87px;
+            height: 32px;
+            /* background: rgba(0,0,0,0.05); border-radius: 16px; 仅调试用 */
+        }
+
+        /* 聊天区域 */
+        #chat-container {
+            scroll-behavior: smooth;
+        }
+
+        /* 气泡通用样式 */
+        .bubble {
+            max-width: 75%; /* WeChat bubbles are slightly narrower */
+            padding: 10px 14px;
+            border-radius: 8px; /* Slightly less rounded than iOS iMessage */
+            font-size: 16px;
+            line-height: 1.5;
+            position: relative;
+            word-wrap: break-word;
+        }
+        
+        /* AI 气泡 */
+        .bubble-ai {
+            background-color: #ffffff;
+            color: #1f2937;
+            border: 0.5px solid rgba(0,0,0,0.05);
+        }
+        .bubble-ai::before { /* 小三角 */
+            content: "";
+            position: absolute;
+            left: -6px; top: 14px;
+            width: 0; height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-right: 6px solid #ffffff;
+        }
+
+        /* 用户气泡 */
+        .bubble-user {
+            background-color: #95ec69; /* WeChat Green Bubble */
+            color: #000;
+        }
+        .bubble-user::after { /* 小三角 */
+            content: "";
+            position: absolute;
+            right: -6px; top: 14px;
+            width: 0; height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 6px solid #95ec69;
+        }
+
+        /* 系统/免责气泡 */
+        .bubble-system {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: rgba(0,0,0,0.3);
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 4px;
+            text-align: center;
+            margin: 16px auto;
+            max-width: 80%;
+        }
+
+        /* WeUI 风格表单 (Form Cells) */
+        .weui-cells {
+            margin-top: 8px;
+            background-color: var(--bg-white);
+            line-height: 1.41176471;
+            font-size: 17px;
+            overflow: hidden;
+            position: relative;
+            border-radius: 12px; /* Modern WeChat style */
+        }
+        .weui-cell {
+            padding: 16px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .weui-cell::after {
+            content: " ";
+            position: absolute;
+            left: 16px;
+            right: 0;
+            bottom: 0;
+            height: 1px;
+            border-bottom: 1px solid var(--border-color);
+            transform-origin: 0 100%;
+            transform: scaleY(0.5);
+        }
+        .weui-cell:last-child::after { border-bottom: none; }
+        
+        .weui-label {
+            width: 105px;
+            word-wrap: break-word;
+            word-break: break-all;
+            font-weight: 500;
+        }
+        .weui-input {
+            width: 100%;
+            border: 0;
+            outline: 0;
+            -webkit-appearance: none;
+            background-color: transparent;
+            font-size: inherit;
+            color: inherit;
+            height: 1.41176471em;
+            line-height: 1.41176471;
+            text-align: right; /* Right align for modern feel */
+        }
+
+        /* 自定义选择器样式 (Custom Select) */
+        .custom-picker-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+            color: var(--text-main);
+        }
+        .custom-picker-trigger.empty { color: var(--text-secondary); }
+        .custom-picker-arrow { font-size: 12px; color: #b2b2b2; }
+
+        /* 自定义 Gender Toggle */
+        .gender-toggle {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 2px;
+        }
+        .gender-option {
+            padding: 6px 16px;
+            font-size: 14px;
+            border-radius: 6px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .gender-option.active {
+            background: #fff;
+            color: #000;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* 快捷建议 Chips */
+        .suggestion-chip {
+            background-color: #fff;
+            color: #1f2937;
+            padding: 8px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            white-space: nowrap;
+            transition: all 0.2s;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            font-weight: 400;
+            border: 0.5px solid rgba(0,0,0,0.05);
+        }
+        .suggestion-chip:active {
+            background-color: #f5f5f5;
+        }
+
+        /* Loading 动画 */
+        .dot-flashing {
+            position: relative;
+            width: 6px;
+            height: 6px;
+            border-radius: 5px;
+            background-color: #aaa;
+            color: #aaa;
+            animation: dot-flashing 1s infinite linear alternate;
+            animation-delay: 0.5s;
+        }
+        .dot-flashing::before, .dot-flashing::after {
+            content: "";
+            display: inline-block;
+            position: absolute;
+            top: 0;
+        }
+        .dot-flashing::before {
+            left: -10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 5px;
+            background-color: #aaa;
+            color: #aaa;
+            animation: dot-flashing 1s infinite alternate;
+            animation-delay: 0s;
+        }
+        .dot-flashing::after {
+            left: 10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 5px;
+            background-color: #aaa;
+            color: #aaa;
+            animation: dot-flashing 1s infinite alternate;
+            animation-delay: 1s;
+        }
+        @keyframes dot-flashing {
+            0% { background-color: #aaa; }
+            50%, 100% { background-color: #ddd; }
+        }
+
+        /* 页面切换动画 (iOS 风格 Push/Pop) */
+        .page-enter-active {
+            animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .page-exit-active {
+            animation: slideOutRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(10px); }
+
+        @keyframes slideInRight { 
+            from { transform: translateX(100%); } 
+            to { transform: translateX(0); } 
+        }
+        @keyframes slideOutRight { 
+            from { transform: translateX(0); } 
+            to { transform: translateX(100%); } 
+        }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* 隐藏滚动条 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Markdown 样式 */
+        .markdown-body strong { color: #000; font-weight: 600; }
+        .markdown-body p { margin-bottom: 8px; }
+        .markdown-body ul, .markdown-body ol { padding-left: 20px; margin: 8px 0; }
+
+        /* 视频/图片占位符样式 */
+        .media-placeholder {
+            background-color: #111827;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .play-button {
+            width: 56px;
+            height: 56px;
+            background: rgba(255,255,255,0.25);
+            backdrop-filter: blur(8px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            transition: transform 0.2s;
+        }
+
+        /* 2. 快捷回复：胶囊按钮 */
+        .capsule-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .capsule-option-btn {
+            background-color: #fff;
+            border: 1px solid #e5e7eb;
+            color: #374151;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .capsule-option-btn:active, .capsule-option-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #d1d5db;
+        }
+        .capsule-option-btn i { font-size: 10px; color: #9ca3af; }
+
+        /* 3. 结构化 SOP 卡片 */
+        .sop-card {
+            background-color: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .sop-header {
+            padding: 12px 16px;
+            background-color: #fff;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 15px;
+            font-weight: 600;
+            color: #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sop-section {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f9f9f9;
+        }
+        .sop-section:last-child { border-bottom: none; }
+        .sop-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .sop-list li {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: start;
+            gap: 6px;
+        }
+        .sop-list li::before {
+            content: "";
+            width: 4px; height: 4px; background: #ddd; border-radius: 50%; margin-top: 8px;
+        }
+        /* Checklist 样式 */
+        .sop-checklist-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f7f7f7;
+            transition: all 0.2s;
+        }
+        .sop-checklist-item.checked {
+            background-color: #f0fdf4;
+        }
+        .sop-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #c7c7c7;
+            border-radius: 50%; /* Circle check */
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+        }
+        .sop-checklist-item.checked .sop-checkbox {
+            background-color: #07c160;
+            border-color: #07c160;
+            color: white;
+        }
+        .sop-step-content h4 {
+            font-size: 15px;
+            font-weight: 500;
+            color: #000;
+            margin-bottom: 4px;
+        }
+        .sop-step-content p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+        .sop-highlight {
+            color: #e64340;
+            font-weight: 500;
+        }
+        .sop-media {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background-color: #eee;
+            border-radius: 6px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .sop-principle {
+            font-size: 12px;
+            color: #888;
+            background-color: #f7f7f7;
+            padding: 10px;
+            border-radius: 6px;
+            line-height: 1.5;
+        }
+        .sop-warning {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            font-size: 13px;
+            color: #fa5151;
+            background-color: #fff1f0;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        /* --- 交互式 SOP 卡片 (Interactive Card) --- */
+        .interactive-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            margin-top: 8px;
+            width: 100%;
+        }
+        .ic-header {
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ic-title { font-weight: 600; color: #000; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        
+        /* Checklist 模式 */
+        .ic-checklist { padding: 16px; }
+        .ic-check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #f7f7f7;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ic-check-item.checked { background: #f0fdf4; }
+        .ic-checkbox {
+            width: 22px; height: 22px; border: 1px solid #ccc; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; background: #fff;
+        }
+        .ic-check-item.checked .ic-checkbox { background: #07c160; border-color: #07c160; color: #fff; }
+        .ic-check-text { font-size: 15px; color: #333; font-weight: 400; }
+        
+        /* Step 模式 */
+        .ic-step-container { padding: 24px 20px; text-align: center; }
+        .ic-step-number { 
+            font-size: 12px; font-weight: 700; text-transform: uppercase; color: #fa9d3b; 
+            letter-spacing: 1px; margin-bottom: 12px; 
+        }
+        .ic-step-title { font-size: 22px; font-weight: 600; color: #000; margin-bottom: 16px; }
+        .ic-step-desc { font-size: 15px; color: #666; line-height: 1.6; margin-bottom: 24px; }
+        .ic-timer {
+            font-family: monospace; font-size: 28px; font-weight: 600; color: #fa9d3b;
+            background: #fff8e1; padding: 6px 16px; border-radius: 8px; display: inline-block; margin-bottom: 20px;
+        }
+        
+        .ic-footer {
+            padding: 16px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 12px;
+        }
+        .ic-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ic-btn-primary { background: #07c160; color: #fff; }
+        .ic-btn-primary:active { background: #06ad56; }
+        .ic-btn-secondary { background: #f2f2f2; color: #000; }
+        .ic-btn-secondary:active { background: #e6e6e6; }
+
+        /* --- 7. 场景导航宫格 (Scenario Grid) --- */
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .scenario-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .scenario-card:active { background: #f9f9f9; }
+        .scenario-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px; /* Circle */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .scenario-info h4 { font-size: 15px; font-weight: 500; color: #000; margin-bottom: 4px; }
+        .scenario-info p { font-size: 11px; color: #888; }
+
+        /* === 优化后的表单样式 (Modern Form) === */
+        .form-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #888;
+            margin: 20px 4px 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            border: 1px solid #f0f0f0;
+        }
+        .form-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f9f9f9;
+        }
+        .form-row:last-child { border-bottom: none; }
+        
+        .form-label {
+            width: 100px;
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-label i { color: var(--brand-orange); width: 20px; text-align: center; }
+        
+        .form-input-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        
+        .modern-input {
+            width: 100%;
+            text-align: right;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            color: #000;
+            background: transparent;
+            padding: 4px 0;
+        }
+        .modern-input::placeholder { color: #ccc; }
+        
+        .modern-input-group {
+            display: flex;
+            align-items: center;
+            background: #f5f5f5;
+            padding: 4px 12px;
+            border-radius: 8px;
+            width: 130px; /* 固定宽度使其对齐 */
+        }
+        .modern-input-group input { text-align: center; font-weight: 600; color: var(--brand-primary); }
+        .modern-input-group span { font-size: 12px; color: #888; margin-left: 4px; white-space: nowrap; }
+
+        /* 优化后的 Gender Toggle */
+        .modern-gender-toggle {
+            display: flex;
+            background: #f0f0f0;
+            padding: 3px;
+            border-radius: 20px;
+        }
+        .modern-gender-opt {
+            padding: 6px 16px;
+            font-size: 13px;
+            border-radius: 18px;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .modern-gender-opt.active {
+            background: #fff;
+            color: #000;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .modern-gender-opt.boy.active { color: #3b82f6; }
+        .modern-gender-opt.girl.active { color: #ec4899; }
+        
+        /* 居中弹窗动画 (Center Dialog) */
+        .dialog-enter { animation: dialogEnter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .dialog-exit { animation: dialogExit 0.2s ease-in forwards; }
+        
+        @keyframes dialogEnter { 
+            from { opacity: 0; transform: scale(0.9) translateY(10px); } 
+            to { opacity: 1; transform: scale(1) translateY(0); } 
+        }
+        @keyframes dialogExit { 
+            from { opacity: 1; transform: scale(1); } 
+            to { opacity: 0; transform: scale(0.95); } 
+        }
+
+        /* 纯淡入淡出 (用于遮罩) */
+        .fade-in { animation: fadeIn 0.3s forwards; }
+        .fade-out { animation: fadeOut 0.3s forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* 新版表单样式 (Label Top) */
+        .dialog-input-group {
+            margin-bottom: 16px;
+        }
+        .dialog-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .dialog-input {
+            width: 100%;
+            background-color: #f7f8fa; /* Light Gray */
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 16px;
+            color: #000;
+            border: 1px solid transparent;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .dialog-input:focus {
+            background-color: #fff;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 2px rgba(7, 193, 96, 0.1);
+        }
+        
+        /* Gender Buttons */
+        .gender-btn-group {
+            display: flex;
+            gap: 12px;
+        }
+        .gender-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #666;
+            font-size: 15px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .gender-btn.active {
+            background-color: #f0fdf4; /* Light Green Bg */
+            border-color: #07c160;
+            color: #07c160;
+            font-weight: 600;
+        }
+
+     </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+    <div class="phone-mockup" id="app">
+        
+        <!-- === 主页面 (Main Page) === -->
+        <div id="main-page" class="w-full h-full flex flex-col relative bg-white">
+            
+            <!-- 1. 顶部 Header (简化版) -->
+            <div class="w-full h-12 bg-white flex items-center justify-center font-bold border-b border-gray-100 text-gray-800 text-lg sticky top-0 z-40">
+                兜知道
+            </div>
+
+            <!-- 聊天主界面 -->
+            <div class="flex-1 overflow-y-auto p-4 bg-gray-50/50 no-scrollbar relative transition-colors duration-1000" id="chat-container">
+                <div class="flex justify-center mb-6 fade-in-up">
+                    <div class="bubble-system">
+                        <i class="fas fa-shield-alt mr-1"></i>
+                        兜知道提供育婴建议，非医疗诊断。急症请立即就医。
+                    </div>
+                </div>
+                <!-- 默认欢迎语 (增加场景宫格) -->
+                <div class="flex items-start mb-6 gap-3 fade-in-up">
+                    <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center overflow-hidden flex-shrink-0 border border-orange-200 shadow-sm">
+                        <img src="https://api.iconify.design/noto:woman-feeding-baby-medium-light-skin-tone.svg" alt="兜兜" class="w-7 h-7">
+                    </div>
+                    <div class="flex flex-col gap-1 max-w-[85%]">
+                        <div class="text-[11px] text-gray-400 ml-1 font-medium">兜兜 (金牌月嫂)</div>
+                        <div class="bubble bubble-ai text-[15px] mb-2">
+                            宝妈你好呀！今天想聊点什么？👋<br>不管是吃喝拉撒，还是生病护理，我都准备好了权威建议哦。
+                        </div>
+                        
+                        <!-- 场景导航宫格 -->
+                        <div class="scenario-grid">
+                            <div class="scenario-card" onclick="triggerScenario('food')">
+                                <div class="scenario-icon bg-green-100 text-green-500"><i class="fas fa-apple-alt"></i></div>
+                                <div class="scenario-info">
+                                    <h4>辅食喂养</h4>
+                                    <p>食谱/过敏/补铁</p>
+                                </div>
+                            </div>
+                            <div class="scenario-card" onclick="triggerScenario('illness')">
+                                <div class="scenario-icon bg-red-100 text-red-500"><i class="fas fa-first-aid"></i></div>
+                                <div class="scenario-info">
+                                    <h4>生病护理</h4>
+                                    <p>发烧/感冒/腹泻</p>
+                                </div>
+                            </div>
+                            <div class="scenario-card" onclick="triggerScenario('sleep')">
+                                <div class="scenario-icon bg-indigo-100 text-indigo-500"><i class="fas fa-moon"></i></div>
+                                <div class="scenario-info">
+                                    <h4>睡眠引导</h4>
+                                    <p>接觉/夜醒/哄睡</p>
+                                </div>
+                            </div>
+                            <div class="scenario-card" onclick="triggerScenario('growth')">
+                                <div class="scenario-icon bg-blue-100 text-blue-500"><i class="fas fa-ruler"></i></div>
+                                <div class="scenario-info">
+                                    <h4>生长发育</h4>
+                                    <p>身高/体重/大运动</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部区域容器 -->
+            <div class="bg-white border-t border-gray-100 relative z-30 pb-safe">
+                <!-- 快捷建议 Chips -->
+                <div class="flex items-center gap-2 px-4 py-3">
+                    <button onclick="refreshSuggestions()" class="w-8 h-8 rounded-full bg-white border border-gray-200 text-gray-400 flex items-center justify-center flex-shrink-0 shadow-sm active:rotate-180 transition-transform duration-500">
+                        <i class="fas fa-sync-alt text-xs"></i>
+                    </button>
+                    <div class="flex gap-2 overflow-x-auto no-scrollbar flex-1" id="suggestion-bar">
+                        <!-- JS Rendered -->
+                    </div>
+                </div>
+
+                <!-- 输入栏 (包含多模态入口) -->
+                <div class="px-3 pb-3 flex items-end gap-2">
+                    <div class="flex-1 bg-gray-100 rounded-[20px] px-4 py-2.5 transition focus-within:ring-2 focus-within:ring-orange-100 focus-within:bg-white border border-transparent focus-within:border-orange-200">
+                        <textarea id="user-input" rows="1" placeholder="问问兜兜..." 
+                            class="w-full bg-transparent text-[15px] focus:outline-none resize-none max-h-24 pt-0.5"
+                            oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"
+                            onkeypress="handleKeyPress(event)"></textarea>
+                    </div>
+                    
+                    <button onclick="sendMessage()" id="send-btn" class="bg-gradient-to-r from-[#ff9e80] to-[#ff8a65] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:shadow-lg active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed mb-[2px]">
+                        <i class="fas fa-paper-plane text-sm translate-x-[-1px] translate-y-[1px]"></i>
+                    </button>
+                </div>
+
+                <!-- 底部 Tab Bar -->
+                <div class="tab-bar flex justify-around items-center pt-2 pb-5 bg-white/95 backdrop-blur text-[10px] border-t border-gray-50">
+                    <div class="flex flex-col items-center text-[#ff8a65] font-medium cursor-pointer transition-colors">
+                        <i class="fas fa-comment-dots text-xl mb-1"></i>
+                        兜兜在线
+                    </div>
+                    <div class="flex flex-col items-center text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" onclick="showProfile()">
+                        <i class="fas fa-book-medical text-xl mb-1"></i>
+                        兜兜小本
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === 急救教程库子页面 (Subpage: Emergency List) === -->
+        <div id="emergency-page" class="hidden absolute inset-0 bg-gray-50 z-50 flex flex-col w-full h-full">
+            <!-- 导航栏：完全复刻 iOS 导航栏样式 -->
+            <div class="pt-12 pb-3 px-4 flex items-center justify-between bg-white border-b border-gray-100 sticky top-0 z-10">
+                <div class="flex items-center gap-1 w-20">
+                    <button onclick="closeEmergency()" class="w-10 h-10 -ml-2 rounded-full flex items-center justify-center text-gray-800 hover:bg-gray-100 transition active:scale-95">
+                        <i class="fas fa-chevron-left text-lg"></i>
+                    </button>
+                </div>
+                <div class="font-bold text-[17px] text-gray-900 flex-1 text-center">急救教程库</div>
+                <div class="w-20 flex justify-end">
+                    <!-- 占位，保持标题居中 -->
+                    <div class="w-8"></div>
+                </div>
+            </div>
+
+            <!-- 120 紧急提示 -->
+            <div class="px-4 py-3 bg-white">
+                <div class="bg-red-50 border border-red-100 text-red-700 p-3 rounded-xl text-[13px] font-medium flex gap-3 items-center shadow-sm">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse">
+                        <i class="fas fa-phone-volume text-red-500"></i>
+                    </div>
+                    <div class="flex-1">情况危急请直接拨打 <strong class="text-red-800 text-base">120</strong></div>
+                    <a href="tel:120" class="bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow hover:bg-red-600 active:scale-95 transition">立即呼叫</a>
+                </div>
+            </div>
+
+            <!-- 列表内容 -->
+            <div class="flex-1 overflow-y-auto p-4 pb-10">
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- 海姆立克卡片 -->
+                    <div onclick="navigateToDetail('heimlich')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md active:scale-95 transition cursor-pointer flex flex-col items-center">
+                        <div class="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-3 text-red-500">
+                            <i class="fas fa-child text-2xl"></i>
+                        </div>
+                        <div class="font-bold text-gray-800 text-[15px]">异物卡喉</div>
+                        <div class="text-xs text-gray-400 mt-1 mb-2">海姆立克急救法</div>
+                        <span class="text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded-md font-medium">图文+视频</span>
+                    </div>
+
+                    <!-- 高热惊厥卡片 -->
+                    <div onclick="navigateToDetail('fever')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md active:scale-95 transition cursor-pointer flex flex-col items-center">
+                        <div class="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-3 text-red-500">
+                            <i class="fas fa-temperature-high text-2xl"></i>
+                        </div>
+                        <div class="font-bold text-gray-800 text-[15px]">高热惊厥</div>
+                        <div class="text-xs text-gray-400 mt-1 mb-2">紧急护理指南</div>
+                        <span class="text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded-md font-medium">图文+视频</span>
+                    </div>
+
+                    <!-- CPR 卡片 -->
+                    <div onclick="navigateToDetail('cpr')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md active:scale-95 transition cursor-pointer flex flex-col items-center">
+                        <div class="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-3 text-red-500">
+                            <i class="fas fa-heartbeat text-2xl"></i>
+                        </div>
+                        <div class="font-bold text-gray-800 text-[15px]">婴儿CPR</div>
+                        <div class="text-xs text-gray-400 mt-1 mb-2">心肺复苏术</div>
+                        <span class="text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded-md font-medium">图文+视频</span>
+                    </div>
+
+                    <!-- 烫伤卡片 -->
+                    <div onclick="navigateToDetail('burn')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md active:scale-95 transition cursor-pointer flex flex-col items-center">
+                        <div class="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-3 text-red-500">
+                            <i class="fas fa-tint text-2xl"></i>
+                        </div>
+                        <div class="font-bold text-gray-800 text-[15px]">严重烫伤</div>
+                        <div class="text-xs text-gray-400 mt-1 mb-2">冲脱泡盖送</div>
+                        <span class="text-[10px] text-red-500 bg-red-50 px-2 py-0.5 rounded-md font-medium">图文指南</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === 教程详情子页面 (Subpage: Detail) === -->
+        <div id="detail-page" class="hidden absolute inset-0 bg-white z-[60] flex flex-col w-full h-full">
+            <!-- 动态内容容器 -->
+        </div>
+
+        <!-- 档案 Modal (Dialog Style) -->
+        <div id="profile-modal" class="hidden absolute inset-0 bg-black/60 z-[70] flex items-center justify-center backdrop-blur-sm" style="transition: opacity 0.3s;">
+            <div id="profile-content" class="bg-white w-[88%] max-w-[340px] rounded-2xl p-5 shadow-2xl relative overflow-hidden flex flex-col max-h-[90%]">
+                
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-4 pb-4 border-b border-gray-100">
+                    <h3 class="font-bold text-lg text-gray-900">宝宝档案</h3>
+                    <button onclick="closeProfile()" class="text-gray-400 hover:text-gray-600 p-1">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="flex-1 overflow-y-auto no-scrollbar">
+                    
+                    <!-- Nickname -->
+                    <div class="dialog-input-group">
+                        <label class="dialog-label">宝宝昵称</label>
+                        <input type="text" id="p-name" class="dialog-input" placeholder="请输入昵称">
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="dialog-input-group">
+                        <label class="dialog-label">性别</label>
+                        <div class="gender-btn-group">
+                            <div class="gender-btn active" id="gender-boy" onclick="setGender('男孩')">男孩</div>
+                            <div class="gender-btn" id="gender-girl" onclick="setGender('女孩')">女孩</div>
+                        </div>
+                    </div>
+
+                    <!-- Birth -->
+                    <div class="dialog-input-group">
+                        <label class="dialog-label">出生日期</label>
+                        <div class="relative">
+                            <input type="date" id="p-birth" class="dialog-input" style="padding-right: 40px;" onchange="updateAgePreview()">
+                            <i class="fas fa-calendar-alt absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                        </div>
+                        <div class="mt-2 text-orange-500 font-medium text-sm" id="p-age-display">当前月龄: 计算中...</div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="h-px bg-gray-100 my-4"></div>
+
+                    <div class="text-xs text-gray-400 mb-4">最近状态 (AI将参考此信息)</div>
+                    
+                    <!-- Status Grid (2x2) -->
+                    <div class="grid grid-cols-2 gap-4 mb-2">
+                        <div>
+                            <label class="dialog-label text-xs mb-1.5">上次喂奶 (小时前)</label>
+                            <input type="number" id="s-feed" step="0.5" class="dialog-input" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="dialog-label text-xs mb-1.5">体温 (°C)</label>
+                            <input type="number" id="s-temp" step="0.1" class="dialog-input" placeholder="36.5">
+                        </div>
+                        <div>
+                            <label class="dialog-label text-xs mb-1.5">上次换尿布 (小时前)</label>
+                            <input type="number" id="s-diaper" step="0.5" class="dialog-input" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="dialog-label text-xs mb-1.5">睡眠 (小时前醒)</label>
+                            <input type="number" id="s-sleep" step="0.5" class="dialog-input" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Action -->
+                <div class="mt-6 pt-2">
+                    <button onclick="saveProfile()" class="w-full bg-[#07c160] text-white py-3 rounded-xl font-bold shadow-sm active:bg-[#06ad56] transition text-[16px]">
+                        保存档案
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // === 配置区域 ===
+        const API_CONFIG = {
+            KEY: "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",
+            URL: "https://openrouter.ai/api/v1/chat/completions",
+            MODEL: "google/gemini-2.0-flash-001"
+        };
+
+        const SUGGESTION_POOL = [
+            "宝宝发烧39度怎么办？", "怎么给宝宝洗澡？", "宝宝哭了怎么哄？", "播放排气操口令",
+            "新生儿吐奶严重吗？", "宝宝几天没拉粑粑了", "红屁股怎么护理？", "什么时候添加辅食？",
+            "宝宝长湿疹了怎么办？", "如何培养自主入睡？", "宝宝晚上总是闹觉", "正确的母乳喂养姿势",
+            "新生儿黄疸怎么办？", "宝宝积食有什么症状？", "怎么清理宝宝鼻屎？"
+        ];
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function renderSuggestions() {
+            const shuffled = shuffleArray([...SUGGESTION_POOL]); // Copy
+            const selected = shuffled.slice(0, 5); // Pick 5
+            
+            const container = document.getElementById('suggestion-bar');
+            if(!container) return;
+            container.innerHTML = selected.map(s => `
+                <button onclick="sendQuickMsg('${s}')" class="suggestion-chip flex-shrink-0">${s}</button>
+            `).join('');
+            
+            // Add subtle animation
+            container.classList.remove('fade-in-up');
+            void container.offsetWidth; // trigger reflow
+            container.classList.add('fade-in-up');
+        }
+        
+        function refreshSuggestions() {
+            const btn = document.querySelector('button[onclick="refreshSuggestions()"] i');
+            if(btn) {
+                btn.parentElement.style.transform = 'rotate(180deg)';
+                setTimeout(() => btn.parentElement.style.transform = 'rotate(0deg)', 500);
+            }
+            renderSuggestions();
+        }
+
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const suggestionBar = document.getElementById('suggestion-bar');
+        
+        const mainPage = document.getElementById('main-page');
+        const emergencyPage = document.getElementById('emergency-page');
+        const detailPage = document.getElementById('detail-page');
+
+        let chatHistory = [];
+
+        const userProfile = {
+            name: '糯米',
+            age: '5个月12天',
+            birth: '2023-05-20',
+            gender: '女孩',
+            weight: '7.5kg'
+        };
+
+        const babyState = {
+            lastFeed: 3.5, 
+            lastDiaper: 2, 
+            sleep: 1, 
+            temp: 36.6,
+            symptoms: [] 
+        };
+
+        const SOP_LIBRARY = {
+            'fever_care': {
+                title: '低热物理降温护理',
+                prep: ['温水 (32-34℃)', '软毛巾 x2', '透气吸汗的衣服'],
+                steps: [
+                    { title: '调整室温', text: '保持室内温度在 24-26℃，适当通风，避免直吹宝宝。' },
+                    { title: '减少衣物', text: '脱去过多衣物，切勿“捂汗”。', highlight: '关键步骤' },
+                    { title: '温水擦拭', text: '用温湿毛巾擦拭额头、颈部、腋下、腹股沟。', image: 'https://api.iconify.design/noto:person-taking-bath-light-skin-tone.svg' },
+                    { title: '少量喂水', text: '少量多次喂温开水，促进排尿散热。' }
+                ],
+                principle: '通过水分蒸发带走体表热量，同时避免因穿盖过多导致热量无法散发。',
+                warning: '若出现寒战、皮肤起花纹或体温骤升，请立即停止擦拭并就医。'
+            },
+            'spit_up_care': {
+                title: '吐奶/呛奶紧急护理',
+                prep: ['干毛巾', '更换的衣物'],
+                steps: [
+                    { title: '侧卧体位', text: '立即让宝宝侧卧，或者头偏向一侧，防止呕吐物回流堵塞气管。', highlight: '生命体位' },
+                    { title: '清理口鼻', text: '快速清理口腔和鼻腔的残留奶液，确保呼吸通畅。' },
+                    { title: '拍背安抚', text: '空心掌轻拍背部，安抚宝宝情绪，观察是否有咳嗽或呼吸困难。' },
+                    { title: '观察后续', text: '吐奶后暂时不要立即喂奶，休息30分钟后再观察。' }
+                ],
+                principle: '防止呕吐物吸入气管引起窒息或吸入性肺炎。',
+                warning: '如果宝宝出现脸色发紫、呼吸困难或精神极差，请立即拨打120。'
+            }
+        };
+
+        const INTERACTIVE_SOPS = {
+            'bath': {
+                title: '新生儿洗澡向导',
+                checklist: [
+                    '室温调节至 26-28℃',
+                    '水温调节至 37-38℃ (手肘试温)',
+                    '准备物品：浴巾、抚触油、护臀膏',
+                    '准备物品：干净的衣服、尿不湿'
+                ],
+                steps: [
+                    { title: '脱衣包裹', desc: '脱去宝宝衣物，用大毛巾包裹身体，只露出头部。', timer: 0 },
+                    { title: '洗脸', desc: '用温湿小方巾清洗眼睛（由内向外）、鼻子、嘴巴、脸颊。', timer: 0 },
+                    { title: '洗头', desc: '托住宝宝头部，用拇指和中指盖住耳孔防水。打湿头发，轻柔搓洗，冲净擦干。', timer: 0 },
+                    { title: '下水洗澡', desc: '先让宝宝脚沾水适应，再缓慢放入水中。托住头颈背部。', timer: 0 },
+                    { title: '清洗身体', desc: '重点清洗脖子、腋下、大腿根部等褶皱处。', timer: 180 }, 
+                    { title: '出水包裹', desc: '迅速用大浴巾包裹宝宝，按压吸干水分（不要用力擦）。', timer: 0 }
+                ]
+            }
+        };
+
+        function getSystemPrompt() {
+            return `你是一位经验丰富的"金牌月嫂"和"高级育婴师"，名字叫"兜兜"。
+你的服务对象是0-1岁的新手父母。你的目标是安抚他们的焦虑，提供专业、可执行的护理建议。
+
+**核心人设与原则：**
+1.  **语气风格**：温柔、耐心、像家人一样。多用口语（"宝妈别急"、"咱们先..."），禁止使用冷冰冰的医生口吻。
+2.  **回复逻辑**：
+    *   **针对具体问题，输出 SOP**：用户询问具体护理问题（如"怎么拍嗝"、"红屁股怎么办"）时，必须输出结构化的 SOP（标准作业程序）。
+    *   **先安抚**："听到宝宝哭我也很心疼，别急..."
+    *   **后分析**：结合提供的宝宝状态进行简要推理。
+    *   **给指令**：如果是具体操作，通过 \`dynamic_sop\` 返回步骤。
+
+**输出格式要求 (必须严格遵守 JSON)**：
+请只输出一段纯 JSON 文本，不要包含 Markdown 代码块标记。格式如下：
+{
+    "reply": "简短的安抚和开场白（不要包含具体步骤，步骤放在 sopData 中）。",
+    "action": "none" | "static_sop" | "interactive_sop" | "dynamic_sop",
+    "actionKey": "对应的 Key (仅 static_sop/interactive_sop 需要)", 
+    "sopData": {  // 当 action 为 dynamic_sop 时必填
+        "title": "SOP 标题",
+        "steps": [
+            { "title": "步骤1标题", "desc": "步骤1详细描述" },
+            { "title": "步骤2标题", "desc": "步骤2详细描述" }
+        ],
+        "tips": "注意事项或原理"
+    },
+    "suggestions": ["快捷建议1", "快捷建议2"]
+}
+
+**现有 SOP 库 (actionKey 参考)**：
+*   Interactive SOP (交互式): "bath" (洗澡)
+*   Static SOP (静态卡片): "fever_care" (发烧护理), "spit_up_care" (吐奶护理)
+*   **其他所有护理问题**：请使用 "dynamic_sop" 并自动生成 steps。
+`;
+        }
+
+        function getContextMessage() {
+            return `
+【当前宝宝档案】
+姓名：${userProfile.name}
+月龄：${userProfile.age}
+性别：${userProfile.gender}
+体重：${userProfile.weight}
+
+【实时状态 (Dashboard)】
+距离上次喂奶：${babyState.lastFeed} 小时
+距离上次换尿布：${babyState.lastDiaper} 小时
+距离睡醒：${babyState.sleep} 小时
+当前体温：${babyState.temp}℃
+`;
+        }
+
+        async function callGemini(userMsg) {
+            console.log("--- Call Gemini Start ---");
+            const systemPrompt = getSystemPrompt();
+            const contextMsg = getContextMessage();
+            
+            const messages = [
+                { role: "system", content: systemPrompt },
+                ...chatHistory.slice(-6), 
+                { role: "user", content: `【系统注入状态信息】\n${contextMsg}\n\n【用户说】\n${userMsg}` }
+            ];
+
+            console.log("Payload:", JSON.stringify(messages, null, 2));
+
+            try {
+                const response = await fetch(API_CONFIG.URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${API_CONFIG.KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: API_CONFIG.MODEL,
+                        messages: messages,
+                        temperature: 0.7,
+                        max_tokens: 1000
+                    })
+                });
+
+                console.log("Response Status:", response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("API Error Detail:", errorText);
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("API Response Body:", data);
+
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error("Invalid API Response Structure");
+                }
+
+                const aiContent = data.choices[0].message.content;
+                console.log("AI Raw Content:", aiContent);
+                
+                // 增强型 JSON 提取
+                let cleanJson = aiContent;
+                const firstBrace = aiContent.indexOf('{');
+                const lastBrace = aiContent.lastIndexOf('}');
+                
+                if (firstBrace !== -1 && lastBrace !== -1) {
+                    cleanJson = aiContent.substring(firstBrace, lastBrace + 1);
+                }
+
+                try {
+                    const result = JSON.parse(cleanJson);
+                    // 更新历史记录
+                    chatHistory.push({ role: "user", content: userMsg });
+                    // 注意：这里存入历史的应该是 content 字符串，而不是对象
+                    chatHistory.push({ role: "assistant", content: aiContent }); 
+                    return result;
+                } catch (e) {
+                    console.error("JSON Parse Error:", e, "Cleaned Content:", cleanJson);
+                    return {
+                        reply: aiContent, // 降级为纯文本
+                        action: "none",
+                        suggestions: []
+                    };
+                }
+
+            } catch (error) {
+                console.error("AI Request Failed Exception:", error);
+                return {
+                    reply: `(调试模式) 请求失败: ${error.message}。请按 F12 打开控制台查看详细日志。`,
+                    action: "none",
+                    suggestions: ["重试"]
+                };
+            }
+        }
+
+        function renderAIMessage(data) {
+            return new Promise((resolve) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-start mb-6 gap-3 fade-in-up';
+                
+                let extraHtml = '';
+                
+                // 1. Action Cards
+                if (data.action === 'static_sop' && SOP_LIBRARY[data.actionKey]) {
+                    extraHtml += renderSOP(data.actionKey);
+                } else if (data.action === 'interactive_sop' && INTERACTIVE_SOPS[data.actionKey]) {
+                    extraHtml += renderInteractiveCardInit(data.actionKey);
+                } else if (data.action === 'dynamic_sop' && data.sopData) {
+                    extraHtml += renderDynamicSOP(data.sopData);
+                }
+
+                // 2. Suggestions
+                if (data.suggestions && data.suggestions.length > 0) {
+                    extraHtml += `<div class="capsule-options">
+                        ${data.suggestions.map(s => `<div class="capsule-option-btn" onclick="sendQuickMsg('${s}')">${s}</div>`).join('')}
+                    </div>`;
+                }
+
+                div.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center overflow-hidden flex-shrink-0 border border-orange-200 shadow-sm">
+                        <img src="https://api.iconify.design/noto:woman-feeding-baby-medium-light-skin-tone.svg" alt="兜兜" class="w-7 h-7">
+                    </div>
+                    <div class="flex flex-col gap-1 max-w-[85%]">
+                        <div class="text-[11px] text-gray-400 ml-1 font-medium">兜兜 (金牌月嫂)</div>
+                        <div class="bubble bubble-ai markdown-body text-[15px]"></div>
+                        ${extraHtml}
+                    </div>
+                `;
+                
+                chatContainer.appendChild(div);
+                
+                // 3. Typing Effect
+                const contentArea = div.querySelector('.markdown-body');
+                if (data.action === 'static_sop' || data.action === 'interactive_sop' || data.action === 'dynamic_sop') {
+                    // 如果有卡片，快速显示文本，避免等待
+                    contentArea.innerHTML = window.marked ? marked.parse(data.reply) : data.reply;
+                    scrollToBottom();
+                    resolve();
+                } else {
+                    let i = 0;
+                    const fullText = data.reply || "";
+                    function type() {
+                        if (i < fullText.length) {
+                            i += Math.floor(Math.random() * 5) + 2; // 加快打字速度
+                            if (i > fullText.length) i = fullText.length;
+                            contentArea.innerHTML = window.marked ? marked.parse(fullText.substring(0, i)) : fullText.substring(0, i);
+                            scrollToBottom();
+                            requestAnimationFrame(type);
+                        } else { 
+                            resolve(); 
+                        }
+                    }
+                    type();
+                }
+            });
+        }
+
+        function renderDynamicSOP(data) {
+            if (!data || !data.steps) return '';
+
+            const stepsHtml = data.steps.map((s, i) => `
+                <div class="sop-checklist-item" onclick="toggleCheck(this)">
+                    <div class="sop-checkbox"><i class="fas fa-check text-[10px] text-white"></i></div>
+                    <div class="sop-step-content flex-1">
+                        <h4>${i+1}. ${s.title}</h4>
+                        <p>${s.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+                <div class="sop-card">
+                    <div class="sop-header">
+                        <span>📋 ${data.title || '护理建议'}</span>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </div>
+                    <div class="sop-section">
+                        <div class="sop-label">分步操作</div>
+                        ${stepsHtml}
+                    </div>
+                    ${data.tips ? `
+                    <div class="sop-section bg-gray-50">
+                        <div class="sop-principle">💡 <strong>兜兜贴士：</strong>${data.tips}</div>
+                    </div>` : ''}
+                </div>
+            `;
+        }
+
+        function renderSOP(key) {
+            const data = SOP_LIBRARY[key];
+            if (!data) return '';
+
+            const prepHtml = data.prep.map(p => `<li>${p}</li>`).join('');
+            const stepsHtml = data.steps.map((s, i) => `
+                <div class="sop-checklist-item" onclick="toggleCheck(this)">
+                    <div class="sop-checkbox"><i class="fas fa-check text-[10px] text-white"></i></div>
+                    <div class="sop-step-content flex-1">
+                        <h4>${i+1}. ${s.title} ${s.highlight ? `<span class="sop-highlight">${s.highlight}</span>` : ''}</h4>
+                        <p>${s.text}</p>
+                        ${s.image ? `<div class="sop-media"><img src="${s.image}" class="w-12 h-12 opacity-80"></div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+                <div class="sop-card">
+                    <div class="sop-header">
+                        <span>🩺 ${data.title}</span>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </div>
+                    <div class="sop-section">
+                        <div class="sop-label">准备工作</div>
+                        <ul class="sop-list">${prepHtml}</ul>
+                    </div>
+                    <div class="sop-section">
+                        <div class="sop-label">分步实操</div>
+                        ${stepsHtml}
+                    </div>
+                    <div class="sop-section bg-gray-50">
+                        <div class="sop-principle">💡 <strong>原理：</strong>${data.principle}</div>
+                        <div class="sop-warning mt-2">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>${data.warning}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderInteractiveCardInit(key) {
+            const data = INTERACTIVE_SOPS[key];
+            if (!data) return '';
+            const cardId = `ic-${key}-${Date.now()}`;
+            
+            const listHtml = data.checklist.map(item => `
+                <div class="ic-check-item" onclick="toggleIcCheck(this)">
+                    <div class="ic-checkbox"><i class="fas fa-check text-[10px] text-white"></i></div>
+                    <div class="ic-check-text">${item}</div>
+                </div>
+            `).join('');
+
+            return `
+                <div class="interactive-card" id="${cardId}" data-key="${key}">
+                    <div class="ic-header">
+                        <div class="ic-title"><i class="fas fa-bath"></i> ${data.title}</div>
+                        <div class="text-xs text-orange-500 font-bold">准备阶段</div>
+                    </div>
+                    <div class="ic-checklist">
+                        ${listHtml}
+                    </div>
+                    <div class="ic-footer">
+                        <div class="ic-btn ic-btn-primary" onclick="updateInteractiveCard('${cardId}', 0)">准备好了，开始</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleCheck(el) { el.classList.toggle('checked'); }
+        function toggleIcCheck(el) { el.classList.toggle('checked'); }
+
+        function updateInteractiveCard(cardId, stepIndex) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            const key = card.dataset.key;
+            const data = INTERACTIVE_SOPS[key];
+            
+            const step = data.steps[stepIndex];
+            const isLast = stepIndex === data.steps.length - 1;
+            const timerHtml = step.timer > 0 ? `<div class="ic-timer">03:00</div>` : '';
+            
+            card.innerHTML = `
+                <div class="ic-header">
+                    <div class="ic-title"><i class="fas fa-bath"></i> ${data.title}</div>
+                    <div class="text-xs text-green-600 font-bold">进行中 ${stepIndex + 1}/${data.steps.length}</div>
+                </div>
+                <div class="ic-step-container">
+                    <div class="ic-step-number">STEP ${stepIndex + 1}</div>
+                    <div class="ic-step-title">${step.title}</div>
+                    ${timerHtml}
+                    <div class="ic-step-desc">${step.desc}</div>
+                </div>
+                <div class="ic-footer">
+                     ${stepIndex > 0 ? `<div class="ic-btn ic-btn-secondary" onclick="updateInteractiveCard('${cardId}', ${stepIndex - 1})">上一步</div>` : ''}
+                    <div class="ic-btn ic-btn-primary" onclick="${isLast ? `finishInteractiveCard('${cardId}')` : `updateInteractiveCard('${cardId}', ${stepIndex + 1})`}">${isLast ? '完成洗澡' : '下一步'}</div>
+                </div>
+            `;
+        }
+
+        function finishInteractiveCard(cardId) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            card.innerHTML = `
+                <div class="p-6 text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check text-2xl text-green-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 mb-2">洗澡完成！</h3>
+                    <p class="text-gray-500 text-sm">记得给宝宝做个抚触哦～</p>
+                </div>
+            `;
+        }
+
+        function triggerScenario(type) {
+            let userText = '';
+            if (type === 'food') userText = '宝宝辅食吃什么？';
+            else if (type === 'illness') userText = '宝宝生病了';
+            else if (type === 'sleep') userText = '宝宝不睡觉怎么办？';
+            else userText = '场景演示';
+            sendQuickMsg(userText);
+        }
+        
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            addMessage(text, 'user');
+            userInput.value = ''; 
+            userInput.style.height = 'auto';
+            
+            setInputState(false);
+            const loadingId = addLoadingIndicator();
+
+            const aiData = await callGemini(text);
+            
+            removeLoadingIndicator(loadingId);
+            await renderAIMessage(aiData);
+            
+            setInputState(true);
+        }
+
+        function sendQuickMsg(msg) { userInput.value = msg; sendMessage(); }
+
+        window.onload = function() {
+            renderSuggestions();
+        };
+        
+        function addMessage(text, type) {
+            const div = document.createElement('div');
+            if (type === 'user') {
+                div.className = 'flex items-end justify-end mb-6 gap-2 fade-in-up';
+                div.innerHTML = `<div class="bubble bubble-user text-[15px]">${text}</div><div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0"><i class="fas fa-user text-gray-400 text-xs"></i></div>`;
+            }
+            chatContainer.appendChild(div);
+            scrollToBottom();
+            return div;
+        }
+
+        function addLoadingIndicator() {
+            const id = 'loading-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = 'flex items-end mb-6 gap-3 fade-in-up';
+            div.innerHTML = `<div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center overflow-hidden flex-shrink-0 border border-orange-200"><img src="https://api.iconify.design/noto:woman-feeding-baby-medium-light-skin-tone.svg" class="w-6 h-6"></div><div class="bubble bubble-ai flex items-center h-[46px]"><div class="dot-flashing mx-2"></div></div>`;
+            chatContainer.appendChild(div);
+            scrollToBottom();
+            return id;
+        }
+
+        function removeLoadingIndicator(id) { const el = document.getElementById(id); if (el) el.remove(); }
+
+        function setInputState(enabled) {
+            userInput.disabled = !enabled;
+            sendBtn.disabled = !enabled; sendBtn.style.opacity = enabled ? '1' : '0.5';
+            suggestionBar.style.pointerEvents = enabled ? 'auto' : 'none'; suggestionBar.style.opacity = enabled ? '1' : '0.5';
+            if (enabled) userInput.focus();
+        }
+
+        function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }
+        function handleKeyPress(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!userInput.disabled) sendMessage(); } }
+        
+        function showProfile() {
+            // Fill inputs
+            document.getElementById('p-name').value = userProfile.name;
+            // document.getElementById('p-gender').value = userProfile.gender; // Removed
+            setGender(userProfile.gender); // Use new function
+
+            document.getElementById('p-birth').value = userProfile.birth;
+            // updateDateDisplay(userProfile.birth); // Removed
+
+            document.getElementById('s-feed').value = babyState.lastFeed;
+            document.getElementById('s-diaper').value = babyState.lastDiaper;
+            document.getElementById('s-temp').value = babyState.temp;
+            document.getElementById('s-sleep').value = babyState.sleep;
+
+            updateAgePreview();
+            
+            const modal = document.getElementById('profile-modal');
+            const content = document.getElementById('profile-content');
+            
+            modal.classList.remove('hidden', 'fade-out');
+            modal.classList.add('fade-in');
+            
+            content.classList.remove('dialog-exit');
+            content.classList.add('dialog-enter');
+        }
+
+        // New Helper: Set Gender
+        function setGender(val) {
+            userProfile.gender = val; // Store temp state
+            document.getElementById('gender-boy').className = `gender-btn ${val === '男孩' ? 'active' : ''}`;
+            document.getElementById('gender-girl').className = `gender-btn ${val === '女孩' ? 'active' : ''}`;
+        }
+
+        // New Helper: Update Date Display
+        function updateDateDisplay(dateVal) {
+            // Deprecated: date input works directly now
+        }
+
+        function updateAgePreview() {
+            const birthDate = document.getElementById('p-birth').value;
+            // updateDateDisplay(birthDate); // Removed
+            
+            if (!birthDate) return;
+            const ageStr = calculateAgeStr(birthDate);
+            document.getElementById('p-age-display').innerText = '当前月龄: ' + ageStr;
+        }
+
+        function saveProfile() {
+            // Update Data
+            userProfile.name = document.getElementById('p-name').value;
+            // userProfile.gender is already set by setGender
+            userProfile.birth = document.getElementById('p-birth').value;
+            userProfile.age = document.getElementById('p-age-display').innerText;
+
+            babyState.lastFeed = parseFloat(document.getElementById('s-feed').value) || 0;
+            babyState.lastDiaper = parseFloat(document.getElementById('s-diaper').value) || 0;
+            babyState.temp = parseFloat(document.getElementById('s-temp').value) || 36.5;
+            babyState.sleep = parseFloat(document.getElementById('s-sleep').value) || 0;
+
+            // Notify
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm fade-in-up z-[80]';
+            toast.innerText = '设置已保存';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+
+            closeProfile();
+        }
+
+        function closeProfile() {
+            const modal = document.getElementById('profile-modal');
+            const content = document.getElementById('profile-content');
+
+            modal.classList.remove('fade-in');
+            modal.classList.add('fade-out');
+            
+            content.classList.remove('dialog-enter');
+            content.classList.add('dialog-exit');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300); // Wait for animation
+        }
+
+        function calculateAgeStr(birthDateStr) {
+            const birth = new Date(birthDateStr);
+            const now = new Date();
+            let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+            let days = now.getDate() - birth.getDate();
+            
+            if (days < 0) {
+                months--;
+                const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+            
+            if (months < 0) return "未出生";
+            
+            if (months < 12) {
+                return `${months}个月${days}天`;
+            } else {
+                const years = Math.floor(months / 12);
+                const remainingMonths = months % 12;
+                return `${years}岁${remainingMonths}个月`;
+            }
+        }
+
+        function navigateToEmergency() { emergencyPage.classList.remove('hidden', 'page-exit-active'); emergencyPage.classList.add('page-enter-active'); }
+        function closeEmergency() { emergencyPage.classList.remove('page-enter-active'); emergencyPage.classList.add('page-exit-active'); setTimeout(() => { emergencyPage.classList.add('hidden'); }, 400); }
+        
+        function navigateToDetail(guideId) {
+            const data = guideData[guideId];
+            if (!data) return;
+            detailPage.innerHTML = `
+                <div class="pt-12 pb-3 px-4 flex items-center justify-between bg-white border-b border-gray-100 sticky top-0 z-10">
+                    <div class="flex items-center gap-1 w-20">
+                        <button onclick="closeDetail()" class="w-10 h-10 -ml-2 rounded-full flex items-center justify-center text-gray-800 hover:bg-gray-100 transition active:scale-95"><i class="fas fa-chevron-left text-lg"></i></button>
+                    </div>
+                    <h3 class="font-bold text-[17px] text-gray-900 flex-1 text-center truncate">${data.title}</h3>
+                    <div class="w-20"></div>
+                </div>
+                <div class="flex-1 overflow-y-auto bg-white">
+                    <div class="w-full aspect-video media-placeholder bg-gray-900 sticky top-0 z-0">
+                        <img src="${data.videoThumb}" class="w-20 h-20 opacity-50" />
+                        <div class="absolute inset-0 flex items-center justify-center"><div class="play-button cursor-pointer hover:scale-110 active:scale-95"><i class="fas fa-play ml-1"></i></div></div>
+                    </div>
+                    <div class="p-6 pb-20 relative bg-white rounded-t-3xl -mt-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-1">${data.title}</h2>
+                        <p class="text-gray-500 text-sm mb-8">${data.subtitle}</p>
+                        <div class="space-y-8">
+                            ${data.steps.map((step, index) => `
+                                <div class="flex gap-4">
+                                    <div class="flex-shrink-0 flex flex-col items-center">
+                                        <div class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold text-sm border border-red-100 mt-1">${index + 1}</div>
+                                        ${index < data.steps.length - 1 ? '<div class="w-0.5 flex-1 bg-gray-100 my-2 rounded-full"></div>' : ''}
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-bold text-gray-800 text-[16px] mb-2 flex items-center gap-2">${step.title} <i class="fas ${step.icon} text-gray-300 text-xs"></i></h4>
+                                        <div class="text-gray-600 text-[15px] leading-relaxed">${step.text}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            detailPage.classList.remove('hidden', 'page-exit-active');
+            detailPage.classList.add('page-enter-active');
+        }
+        function closeDetail() { detailPage.classList.remove('page-enter-active'); detailPage.classList.add('page-exit-active'); setTimeout(() => { detailPage.classList.add('hidden'); }, 400); }
+
+        const guideData = {
+            'heimlich': { title: '婴儿海姆立克急救', subtitle: '适用于1岁以下婴儿异物卡喉', videoThumb: 'https://api.iconify.design/noto:baby-light-skin-tone.svg', steps: [{ title: '判断状况', text: '如果宝宝不能咳嗽、哭闹声音微弱或脸色发紫，说明气道被完全堵塞。', icon: 'fa-eye' }, { title: '拍背法 (5次)', text: '手托下颌，让宝宝面朝下趴在手臂上（头低脚高）。用手掌根部，用力拍击肩胛骨中间 5 次。', icon: 'fa-hand-paper' }, { title: '压胸法 (5次)', text: '翻转宝宝面朝上（头低脚高）。双指垂直按压两乳连线中点下方 5 次。', icon: 'fa-compress-alt' }, { title: '循环操作', text: '交替进行拍背和压胸，直到异物排出。', icon: 'fa-sync-alt' }] },
+            'fever': { title: '高热惊厥护理', subtitle: '宝宝突然抽搐、翻白眼时的应对', videoThumb: 'https://api.iconify.design/noto:thermometer.svg', steps: [{ title: '保持镇定', text: '不要大声呼喊或摇晃宝宝。大多数惊厥在5分钟内自愈。', icon: 'fa-spa' }, { title: '侧卧位', text: '让宝宝身体侧向一边，防止呕吐物引起窒息。', icon: 'fa-bed' }, { title: '清理口鼻', text: '解开衣领。**切勿**往宝宝嘴里塞任何东西（手指、勺子等）！', icon: 'fa-ban' }, { title: '记录时间', text: '超过5分钟或反复发作，立即打120。', icon: 'fa-clock' }] },
+            'cpr': { title: '婴儿心肺复苏', subtitle: '无呼吸、无反应时的终极急救', videoThumb: 'https://api.iconify.design/noto:anatomical-heart.svg', steps: [{ title: '确认反应', text: '拍足底无反应且无呼吸，立即让人打120，开始CPR。', icon: 'fa-phone' }, { title: '胸外按压 (30次)', text: '双指按压两乳连线中点下方，深度4cm，频率100-120次/分。', icon: 'fa-heartbeat' }, { title: '人工呼吸 (2次)', text: '包住口鼻吹气2次，见胸廓起伏即可。', icon: 'fa-lungs' }, { title: '持续循环', text: '30次按压 + 2次人工呼吸，直到急救人员到达。', icon: 'fa-sync' }] },
+            'burn': { title: '严重烫伤处理', subtitle: '冲、脱、泡、盖、送', videoThumb: 'https://api.iconify.design/noto:droplet.svg', steps: [{ title: '冲', text: '流动凉水冲洗15-30分钟。不要用冰水。', icon: 'fa-water' }, { title: '脱', text: '小心剪开衣物。若粘连皮肤**不要硬撕**。', icon: 'fa-cut' }, { title: '盖', text: '用干净纱布或保鲜膜覆盖。', icon: 'fa-square' }, { title: '送', text: '立即去医院。不要涂牙膏酱油。', icon: 'fa-ambulance' }] }
+        };
+    </script>
+</body>
+</html>

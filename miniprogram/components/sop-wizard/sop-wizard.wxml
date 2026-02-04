@@ -1,0 +1,55 @@
+<view class="sop-wizard-card">
+  <!-- Header -->
+  <view class="sop-header" wx:if="{{currentStep !== 'finished'}}">
+    <view class="sop-wiz-title">
+      <view class="sop-title-dot"></view>
+      <text>{{data.title}}</text>
+      <view class="sop-phase-tag" wx:if="{{currentStep === -1}}">准备阶段</view>
+      <view class="sop-phase-tag" style="background:#f0f0f0; color:#333;" wx:else>{{currentStep + 1}} / {{data.steps.length}}</view>
+    </view>
+  </view>
+
+  <!-- Phase 1: Preparation -->
+  <block wx:if="{{currentStep === -1}}">
+    <view class="sop-prep-list">
+      <view class="sop-prep-item" wx:for="{{data.preps}}" wx:key="index">
+        <view class="prep-index">{{index + 1 < 10 ? '0' + (index + 1) : index + 1}}</view>
+        <view class="sop-prep-text">{{item}}</view>
+      </view>
+    </view>
+    <view class="sop-actions">
+      <view class="btn-sop-primary" bindtap="startSop">开始</view>
+    </view>
+  </block>
+
+  <!-- Phase 2: Steps -->
+  <block wx:elif="{{currentStep !== 'finished'}}">
+    <view class="sop-step-container">
+      <view class="step-progress">STEP {{currentStep + 1}}</view>
+      <view class="step-main-title">{{data.steps[currentStep].title}}</view>
+      <view class="step-desc">{{data.steps[currentStep].desc}}</view>
+    </view>
+    <view class="sop-actions">
+      <view class="btn-sop-outline" bindtap="prevStep">
+        <text style="font-size:16px;">←</text>
+      </view>
+      <view class="btn-sop-primary" bindtap="nextStep">
+        {{currentStep === data.steps.length - 1 ? '完成' : '下一步'}}
+      </view>
+    </view>
+  </block>
+
+  <!-- Phase 3: Finished -->
+  <block wx:else>
+    <view style="padding:40px 20px; text-align:center;">
+      <view style="width:60rpx; height:60rpx; background:#000; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 24rpx;">
+        <view style="width:20rpx; height:10rpx; border-left:4rpx solid #fff; border-bottom:4rpx solid #fff; transform:rotate(-45deg); margin-top:-4rpx;"></view>
+      </view>
+      <view style="font-size:32rpx; font-weight:700; color:#000; margin-bottom:12rpx;">已完成</view>
+      <view style="font-size:28rpx; color:#666;">宝宝现在一定感觉很舒服</view>
+      <view style="margin-top:40rpx;">
+        <view class="btn-sop-primary" bindtap="reviewSop">回顾步骤</view>
+      </view>
+    </view>
+  </block>
+</view>

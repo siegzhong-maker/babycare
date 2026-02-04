@@ -1,0 +1,118 @@
+/* components/sop-wizard/sop-wizard.wxss */
+.sop-wizard-card {
+  background: #fff;
+  border-radius: 24rpx; /* Softer */
+  margin-top: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.03);
+  border: none;
+  width: 100%;
+}
+
+.sop-header {
+  padding: 32rpx; 
+  border-bottom: 1rpx solid #f9f9f9;
+}
+
+.sop-wiz-title {
+  font-size: 32rpx; 
+  font-weight: 700; 
+  color: #4A4A4A; 
+  display: flex; 
+  align-items: flex-start; 
+}
+
+.sop-title-dot {
+  width: 16rpx; height: 16rpx; background: #8FB2A3; /* Sage */
+  border-radius: 50%; margin-right: 20rpx;
+  margin-top: 14rpx; /* Align with first line of text */
+  flex-shrink: 0;
+}
+
+.sop-phase-tag {
+  font-size: 22rpx; 
+  font-weight: 600; 
+  color: #8FB2A3; 
+  background: #E8F3EE; 
+  padding: 6rpx 16rpx; 
+  border-radius: 20rpx;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+  margin-top: 4rpx;
+}
+
+.sop-prep-list { padding: 20rpx 32rpx; }
+
+.sop-prep-item {
+  display: flex; 
+  align-items: flex-start; 
+  gap: 20rpx; 
+  padding: 24rpx 0; 
+  border-bottom: 1rpx dashed #f0f0f0; 
+}
+
+.prep-index {
+  font-family: -apple-system, sans-serif; /* Back to sans */
+  font-size: 24rpx;
+  color: #fff;
+  background-color: #A9CBD6; /* Muted Blue Circle */
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  margin-top: 4rpx;
+  flex-shrink: 0;
+}
+
+.sop-prep-text { 
+  font-size: 28rpx; 
+  color: #555; 
+  line-height: 1.6; 
+  flex: 1; 
+  font-weight: 400;
+}
+
+.sop-step-container { padding: 48rpx 32rpx; text-align: center; } 
+.step-progress { font-size: 22rpx; color: #8FB2A3; font-weight: 600; letter-spacing: 2rpx; margin-bottom: 20rpx; }
+.step-main-title { font-size: 38rpx; font-weight: 700; color: #4A4A4A; margin-bottom: 32rpx; }
+.step-desc { 
+  font-size: 30rpx; 
+  color: #666; 
+  line-height: 1.7; 
+  text-align: left; 
+  background: #FDFBF7; /* Cream */
+  padding: 40rpx; 
+  border-radius: 24rpx; 
+}
+
+.sop-actions { padding: 32rpx; border-top: none; display: flex; gap: 24rpx; }
+
+.btn-sop-primary {
+  flex: 1; 
+  background: #8FB2A3; 
+  color: #fff; 
+  height: 96rpx; 
+  border-radius: 48rpx; 
+  font-size: 32rpx; 
+  font-weight: 600; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(143, 178, 163, 0.3); 
+}
+
+.btn-sop-outline {
+  width: 96rpx; 
+  height: 96rpx; 
+  border-radius: 50%; 
+  border: 2rpx solid #eee; 
+  color: #999;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  background: #fff;
+  box-sizing: border-box;
+}
