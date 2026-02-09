@@ -67,15 +67,18 @@ function safeParseJSON(str) {
       let sopData = null;
       let suggestions = [];
       
-      const replyMatch = str.match(/"reply"\s*:\s*"(.*?)(?=",|})/s);
+      // |$ handles truncated JSON without closing ", or }
+      const replyMatch = str.match(/"reply"\s*:\s*"(.*?)(?=",|}|$)/s);
       if (replyMatch) reply = replyMatch[1];
       else {
-         // Try to strip JSON artifacts if it's just a raw string
-         if (str.trim().startsWith('{') && str.trim().endsWith('}')) {
-             // It was a failed JSON, maybe we can't extract reply easily if it's complex
-         } else {
-             reply = str; // Treat as plain text
+         // Manual extraction for truncated JSON: {"reply":"xxx (no closing)
+         const replyKeyMatch = str.match(/"reply"\s*:\s*"/);
+         if (replyKeyMatch) {
+           const valueStart = replyKeyMatch.index + replyKeyMatch[0].length;
+           const extracted = str.slice(valueStart).replace(/\\"/g, '"').replace(/\\n/g, '\n');
+           if (extracted.length > 0) reply = extracted;
          }
+         // else: reply stays as str (raw fallback)
       }
       
       if (str.includes('"action": "sop"') || str.includes('"action":"sop"')) {

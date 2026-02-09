@@ -1,0 +1,12 @@
+# 覆盖率报告（本地/CI 生成）
+coverage/
+
+# 依赖
+node_modules/
+
+# 系统与 IDE
+.DS_Store
+.vscode/
+
+# 可选：不将 .trae 文档纳入版本库可取消下一行注释
+# .trae/

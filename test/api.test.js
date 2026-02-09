@@ -40,6 +40,13 @@ describe('API Service', () => {
     const parsed = api.safeParseJSON(broken);
     expect(parsed.reply).toBe('oops');
     // It should successfully recover 'sop' action even if JSON is broken
-    expect(parsed.action).toBe('sop'); 
+    expect(parsed.action).toBe('sop');
+  });
+
+  test('safeParseJSON handles truncated JSON (no closing ", or })', () => {
+    const truncated = '{"reply":"别着急,咱们先确认一下情况,您说的是宝宝吐';
+    const parsed = api.safeParseJSON(truncated);
+    expect(parsed.reply).toBe('别着急,咱们先确认一下情况,您说的是宝宝吐');
+    expect(parsed.reply).not.toContain('{"reply"');
   });
 });
